@@ -1,0 +1,28 @@
+{
+	"name": "llm-pack",
+	"version": "1.0.0",
+	"description": "LLM-Friendly Project Content Aggregator CLI",
+	"main": "bin/index.js",
+	"bin": {
+		"llm-pack": "bin/index.js"
+	},
+	"scripts": {
+		"test": "jest"
+	},
+	"type": "commonjs",
+	"dependencies": {
+		"chalk": "^4.1.2",
+		"ignore": "^5.2.0",
+		"markdown-it": "^13.0.1",
+		"yargs": "^17.7.2"
+	},
+	"devDependencies": {
+		"@babel/core": "^7.26.0",
+		"@babel/preset-env": "^7.26.0",
+		"babel-jest": "^29.7.0",
+		"jest": "^29.7.0"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "MIT"
+}

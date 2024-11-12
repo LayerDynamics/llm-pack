@@ -1,0 +1,242 @@
+
+```asciidoc
+= SPEC-001: LLM-Friendly Project Content Aggregator CLI (JavaScript/Node.js)
+:sectnums:
+:toc:
+
+== Background
+
+This CLI tool is designed to aggregate and optimize the content of a project folder into a single structured file, primarily for use with Large Language Models (LLMs). With AI becoming increasingly adept at parsing and understanding large codebases or document sets, structuring project content into a single, readable file improves compatibility and performance when inputting to LLMs. The CLI will recursively scan a project’s root folder, respect standard ignore files, format the collected content for readability, and output it in Markdown or JSON.
+
+== Requirements
+
+The CLI should include the following features and functionalities, prioritized with MoSCoW:
+
+*Must-Have*:
+- Traverse the root directory and subdirectories, collecting all relevant files.
+- Respect `.gitignore`, `.dockerignore`, and other standard ignore files.
+- Exclude commonly ignored directories (e.g., `node_modules`, `dist`, `coverage`).
+- Aggregate content into a single structured output in Markdown by default, with JSON as an optional format.
+
+*Should-Have*:
+- Support user-defined ignore patterns for additional customization.
+- Structure the output with clear sections and headers for each file to facilitate easy reading by LLMs.
+- Provide syntax highlighting for code blocks in Markdown output.
+
+*Could-Have*:
+- Provide options to limit or compact certain files if the output becomes too large.
+
+*Won’t-Have*:
+- Real-time or interactive processing; the CLI will be a single-command execution tool.
+
+== Method
+
+The JavaScript/Node.js CLI tool will be built around modular components for file scanning, content formatting, ignore processing, and output aggregation. The implementation will use Node.js file system capabilities and several npm libraries to streamline development.
+
+=== Libraries and Dependencies
+
+Key libraries include:
+- **`fs`** and **`path`** (Node.js built-ins): For file system operations and path handling.
+- **`globby`**: For recursive file scanning with advanced pattern matching, including support for ignore files.
+- **`ignore`**: To parse and apply patterns from `.gitignore` and other ignore files.
+- **`marked`** or **`markdown-it`**: For handling Markdown formatting.
+- **`yargs`** or **`commander`**: For building the command-line interface.
+- **`chalk`**: For colored console output to improve CLI usability.
+
+=== Architecture Overview
+
+The CLI application will consist of the following main modules:
+1. **File Scanner**: Recursively scans the root directory, filtering files based on ignore patterns.
+2. **Ignore Processor**: Reads `.gitignore` and other ignore files, as well as a built-in ignore list, to exclude unnecessary files and directories.
+3. **Content Formatter**: Formats the content of each file to be LLM-compatible, either in Markdown (default) or JSON.
+4. **Output Aggregator**: Compiles formatted content into a single structured file.
+
+Below is a high-level component diagram:
+
+```plantuml
+@startuml
+component CLI <<application>> {
+    component "File Scanner" as FileScanner
+    component "Ignore Processor" as IgnoreProcessor
+    component "Content Formatter" as ContentFormatter
+    component "Output Aggregator" as OutputAggregator
+
+    FileScanner --> IgnoreProcessor : Applies ignore rules
+    FileScanner --> ContentFormatter : Passes relevant files
+    ContentFormatter --> OutputAggregator : Structured content
+    CLI --> OutputAggregator : Generates final output
+}
+@enduml
+```
+
+### Module Specifications
+
+- **File Scanner**:
+  - Traverses the root directory, collecting paths of text-based files while skipping binaries.
+  - Only includes relevant files and applies filters from the `Ignore Processor`.
+  - Accepts command-line arguments for additional file types.
+
+- **Ignore Processor**:
+  - Loads ignore patterns from `.gitignore`, `.dockerignore`, and any custom ignore files.
+  - Incorporates a built-in list of directories to ignore (e.g., `node_modules`, `dist`, `coverage`, `__tests__`).
+  - Filters out paths matching the ignore patterns before they are passed to the `File Scanner`.
+
+- **Content Formatter**:
+  - Structures each file’s content in Markdown or JSON format.
+  - For Markdown, adds headers and code blocks with syntax highlighting for readability.
+  - For JSON, structures each file entry with metadata, such as `filePath` and `content`.
+  - Accepts various file types (e.g., `.js`, `.md`, `.json`) and ensures compatibility with LLMs.
+
+- **Output Aggregator**:
+  - Combines formatted content into a single Markdown or JSON file.
+  - Adds a Table of Contents (ToC) in the Markdown output to facilitate navigation for LLMs.
+  - Saves the final output in a user-specified location or the project root by default.
+
+#### Example of Markdown Structure
+
+Each file's content is represented in Markdown format as shown below:
+
+```markdown
+# Project Content
+
+## src/index.js
+
+```javascript
+// content of index.js
+function example() {
+    return "Hello World!";
+}
+```
+
+## README.md
+
+Markdown content of README.md goes here...
+```
+
+== Implementation
+
+The implementation involves setting up the project and creating the required modules for each component.
+
+### Project Structure and File Requirements
+
+- **`package.json`**:
+  - Initializes the Node.js project and defines dependencies.
+
+- **Directory Structure**:
+  - `src/`: Contains all source files for the CLI.
+  - `config/`: Stores configuration files, including a JSON file for default ignore patterns.
+  - `tests/`: Houses unit and integration tests.
+
+### Source Files and Purposes
+
+1. **src/main.js**:
+   - Entry point for the CLI.
+   - Sets up the command-line interface using `yargs`, defining options like output format, output path, and custom ignore files.
+   - Orchestrates the modules in the correct workflow from file scanning to output generation.
+
+2. **src/fileScanner.js**:
+   - Scans the root directory recursively, collecting paths of files with specified extensions.
+   - Accepts command-line arguments for additional file types.
+   - Calls the `Ignore Processor` to filter out files based on ignore patterns.
+
+3. **src/ignoreProcessor.js**:
+   - Loads patterns from `.gitignore`, `.dockerignore`, and any custom ignore files, incorporating a built-in list of directories to ignore.
+   - Provides a method for filtering out paths that match the ignore patterns, which `File Scanner` uses to refine its results.
+
+4. **src/contentFormatter.js**:
+   - Formats the content of each collected file.
+   - Outputs structured Markdown or JSON format for compatibility with LLMs, adding syntax highlighting for Markdown.
+   - Ensures logical structuring of each file’s content and compatibility for each supported file type (e.g., `.js`, `.md`, `.json`).
+
+5. **src/outputAggregator.js**:
+   - Combines all formatted content into a single structured output file.
+   - Adds a Table of Contents (ToC) for Markdown format and organizes JSON output with metadata.
+   - Saves the output file in the specified path, defaulting to the project root if no path is provided.
+
+6. **config/defaultIgnorePatterns.json**:
+   - Stores a list of directories and files to ignore by default (e.g., `node_modules`, `dist`, `coverage`, `__tests__`).
+
+### Testing
+
+- **Unit Tests**:
+  - Located in `tests/`, focusing on each module individually.
+  - Ensure that the `File Scanner`, `Ignore Processor`, `Content Formatter`, and `Output Aggregator` perform as expected.
+
+- **Integration Tests**:
+  - Validate the full workflow by running the CLI on sample directories.
+  - Confirm that ignored files are excluded and that the output file is correctly formatted.
+
+== Milestones
+
+The following milestones outline a phased approach to complete the CLI tool. Each milestone focuses on a specific aspect of development, ensuring progressive functionality, thorough testing, and validation.
+
+### Milestone 1: Project Setup and Initial Configuration
+- **Tasks**:
+  - Initialize the Node.js project with `package.json`.
+  - Set up the base directory structure (`src`, `config`, `tests`).
+  - Create the `config/defaultIgnorePatterns.json` file with default directories and files to ignore.
+  - Install initial dependencies: `globby`, `ignore`, `yargs`, `markdown-it`, and `chalk`.
+
+- **Deliverables**:
+  - A structured project directory with all dependencies installed.
+  - Basic documentation in `README.md` for setup and project purpose.
+
+### Milestone 2: File Scanning and Ignore Processing
+- **Tasks**:
+  - Implement `fileScanner.js` to recursively scan project directories and collect file paths.
+  - Develop `ignoreProcessor.js` to load `.gitignore`, `.dockerignore`, and custom ignore files.
+  - Integrate `ignoreProcessor` with `fileScanner` to filter out ignored paths.
+  - Test file scanning and ignore processing with sample files.
+
+- **Deliverables**:
+  - A functional file-scanning module that respects ignore patterns.
+  - Tests that verify files are correctly scanned and ignored as per configuration.
+
+### Milestone 3: Content Formatting Module
+- **Tasks**:
+  - Implement `contentFormatter.js` to format content in Markdown and JSON formats.
+  - Add headers and code blocks to the Markdown output, with syntax highlighting support.
+  - Ensure the formatter outputs JSON objects with metadata for JSON format.
+  - Test content formatting on different file types (e.g., `.js`, `.md`, `.json`) to confirm proper handling.
+
+-
+
+ **Deliverables**:
+  - A working `contentFormatter` module with support for both Markdown and JSON.
+  - Tests that validate content formatting for various file types and output formats.
+
+### Milestone 4: Output Aggregation and File Generation
+- **Tasks**:
+  - Implement `outputAggregator.js` to combine formatted contents into a single file.
+  - Add functionality for generating Markdown output with a Table of Contents (ToC).
+  - Set up the JSON output format to create a single JSON object.
+  - Test output aggregation for correct file generation and structure.
+
+- **Deliverables**:
+  - An `outputAggregator` module that produces well-structured Markdown and JSON files.
+  - Tests that verify the final output file’s structure, formatting, and content accuracy.
+
+### Milestone 5: CLI Setup and End-to-End Integration
+- **Tasks**:
+  - Develop `main.js` to create the CLI interface using `yargs`.
+  - Define CLI options for output format, output path, and any custom ignore files.
+  - Integrate all modules in a cohesive workflow from scanning to output generation.
+  - Add CLI help documentation, usage examples, and colored output with `chalk`.
+
+- **Deliverables**:
+  - A fully functional CLI tool accessible via `node src/main.js` with all options.
+  - End-to-end tests for the entire workflow, confirming proper file scanning, formatting, and aggregation.
+
+### Milestone 6: Testing, Optimization, and Documentation
+- **Tasks**:
+  - Write comprehensive unit tests for each module, as well as integration tests for the full tool.
+  - Optimize performance, particularly in file reading and formatting, to handle large project folders.
+  - Update the `README.md` with detailed usage instructions, examples, and configuration options.
+  - Add code comments for maintainability and further developer understanding.
+
+- **Deliverables**:
+  - Complete test coverage, ensuring robust and reliable functionality.
+  - Optimized performance for large projects.
+  - Thorough documentation for installation, usage, customization, and CLI options.
+
+```

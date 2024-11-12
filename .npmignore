@@ -1,0 +1,13 @@
+.history
+node_modules/**/*
+# Exclude test files
+tests/
+*.test.js
+
+# Exclude build directories
+dist/
+build/
+
+# Exclude documentation
+docs/
+
