@@ -1,13 +1,64 @@
-.history
-node_modules/**/*
-# Exclude test files
-tests/
+# Source code
+/src/
+/tests/
+/docs/
+# Configuration files
+.eslintrc*
+.prettierrc*
+.editorconfig
+.babelrc*
+babel.config.*
+jest.config.*
+tsconfig.json
+*.config.js
+.gitignore
+.npmignore
+# Development files
+CONTRIBUTING.md
+CHANGELOG.md
+README.md
+SPEC.adoc
+# Project files
+/examples/
 *.test.js
-
-# Exclude build directories
-dist/
-build/
-
-# Exclude documentation
-docs/
-
+*.spec.js
+__tests__/
+__mocks__/
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+# Build and coverage
+/coverage/
+/.nyc_output/
+/dist/
+/build/
+*.tsbuildinfo
+**/.history/**/*
+# Logs and debugging
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+debug.log
+# Environment variables
+.env
+.env.local
+.env.*.local
+# Temporary files
+*.tmp
+*.temp
+.cache/
+# Version control
+.git/
+.gitignore
+.gitattributes
+# Keep these files
+!bin/
+!lib/
+!LICENSE
+!package.json

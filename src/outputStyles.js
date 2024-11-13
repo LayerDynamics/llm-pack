@@ -8,18 +8,15 @@
  * createAsciiSeparator("Hello")
  * // Returns:
  * // ****************************************
- * // ************   Hello   ****************
+ * // *********       Hello       ***********
  * // ****************************************
  */
 function createAsciiSeparator(label) {
-	const separatorLength = 40;
-	const labelFormatted = `*       ${label}       *`;
-	const padding = Math.max(separatorLength - labelFormatted.length, 0);
-	const padStart = Math.floor(padding / 2);
-	const padEnd = padding - padStart;
-	const topBottom = '*'.repeat(separatorLength);
-	const middle = '*'.repeat(padStart) + labelFormatted + '*'.repeat(padEnd);
-	return `${topBottom}\n${middle}\n${topBottom}\n`;
+  const separatorLength = 40;
+  // Create the middle line with consistent spacing (9 asterisks + 7 spaces on each side)
+  const middleLine = `*********       ${label}       *********`;
+  const topBottom = '*'.repeat(separatorLength);
+  return `${topBottom}\n${middleLine}\n${topBottom}\n`;
 }
 
 module.exports = { createAsciiSeparator };

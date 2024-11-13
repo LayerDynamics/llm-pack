@@ -1,7 +1,7 @@
 # LLM-Pack
 
 [![npm version](https://img.shields.io/npm/v/llm-pack.svg)](https://www.npmjs.com/package/llm-pack)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Unlicense](https://img.shields.io/badge/License-Unlicense-blue.svg)](https://opensource.org/licenses/Unlicense)
 
 LLM-Pack is a command-line tool designed to aggregate and optimize project content for use with Large Language Models (LLMs). It recursively scans your project directory, respects standard ignore patterns, and generates a single structured file that's optimized for LLM processing.
 
@@ -11,10 +11,12 @@ LLM-Pack is a command-line tool designed to aggregate and optimize project conte
 - 🚫 Respects `.gitignore`, `.dockerignore`, and other standard ignore files
 - 📝 Markdown and JSON output formats
 - 🎨 Syntax highlighting for code blocks in Markdown output
-- 📑 Automatic table of contents generation for Markdown output
+- 📑 Automatic table of contents generation
 - 🔧 Configurable file size limits and file count constraints
 - 🎯 Custom ignore patterns support
 - 🚀 Built-in common directory exclusions (`node_modules`, `dist`, etc.)
+- ⚡ Streaming support for large file processing
+- 📊 Progress tracking with real-time updates
 
 ## Installation
 
@@ -83,21 +85,23 @@ llm-pack --extensions .tsx .jsx .vue
 llm-pack --max-files 50 --max-file-size 100
 ```
 
-### Default Output Format (Markdown)
+### Output Format
 
-The default Markdown output follows this structure:
+#### Markdown (Default)
+
+The Markdown output follows this structure:
 
 ```markdown
 # Table of Contents
 
-- [src/index.js](#srcindexjs)
-- [README.md](#readmemd)
+- [src/index.js](#src-index-js)
+- [README.md](#readme-md)
 ...
 
 # Project Content
 
 ****************************************
-*            src/index.js             *
+*********       src/index.js       *********
 ****************************************
 
 ```javascript
@@ -105,7 +109,7 @@ The default Markdown output follows this structure:
 ```
 
 ****************************************
-*             README.md               *
+*********       README.md       *********
 ****************************************
 
 ```markdown
@@ -113,7 +117,7 @@ The default Markdown output follows this structure:
 ```
 ```
 
-### JSON Output Format
+#### JSON Output
 
 When using `--format json`, the output follows this structure:
 
@@ -177,8 +181,15 @@ When using `--max-file-size`:
 
 When using `--max-files`:
 - Only the specified number of files will be included
-- Files are processed in alphabetical order
 - A warning will be displayed if files are skipped
+
+## Performance Features
+
+- Streaming support for large file processing
+- Real-time progress tracking
+- Memory-efficient file handling
+- Asynchronous file processing
+- Smart content buffering
 
 ## Contributing
 
