@@ -1,0 +1,30 @@
+name: Generate Docs
+
+on:
+  push:
+    branches:
+      - main  # or the branch you use for primary development
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '21.x' # or your required version
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate documentation
+        run: npm run docs
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/build
