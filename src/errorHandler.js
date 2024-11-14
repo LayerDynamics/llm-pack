@@ -4,10 +4,10 @@ const chalk = require('chalk');
  * @class ErrorHandler
  * @description A class to handle and manage errors and warnings in the application.
  * Provides methods for error tracking, warning management, and report generation.
- * 
+ *
  * @property {Array<Object>} errors - Array storing error objects with timestamp, context, message, stack trace, and fatal status
  * @property {Array<Object>} warnings - Array storing warning objects with timestamp, context, and message
- * 
+ *
  * @example
  * const errorHandler = new ErrorHandler();
  * try {

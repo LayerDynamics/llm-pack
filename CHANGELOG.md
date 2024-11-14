@@ -1,7 +1,9 @@
 # Changelog
+
 ## [1.1.0] - 2024-04-13
 
 ### Added
+
 - Consistent ASCII separator formatting
 - Improved anchor ID generation for Markdown links
 - Enhanced test coverage for content formatting
@@ -17,6 +19,7 @@
 - Performance optimizations for large projects
 
 ### Changed
+
 - Updated separator formatting for better readability
 - Improved content size management
 - Enhanced test stability and reliability
@@ -29,6 +32,7 @@
 - Removed Husky git hooks dependencies
 
 ### Fixed
+
 - Content ordering consistency in output
 - ASCII separator alignment issues
 - Anchor ID generation for special characters
@@ -40,6 +44,7 @@
 - Better handling of invalid file types
 
 ### Initial Release
+
 - Basic file scanning functionality
 - Markdown and JSON output formats
 - Support for common ignore patterns

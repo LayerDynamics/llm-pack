@@ -2,19 +2,19 @@
 /**
  * A class for measuring and reporting performance metrics in Node.js applications.
  * Tracks execution time and memory usage for named operations.
- * 
+ *
  * @class PerformanceBenchmark
  * @example
  * const benchmark = new PerformanceBenchmark();
- * 
+ *
  * // Start measuring a metric
  * benchmark.startMetric('operation');
- * 
+ *
  * // Your code here
- * 
+ *
  * // End measuring and record results
  * benchmark.endMetric('operation');
- * 
+ *
  * // Generate markdown report
  * const report = benchmark.generateReport();
  */

@@ -63,4 +63,10 @@ debug.log
 !LICENSE
 !package.json
 docs
+.github*
 .github
+coverage
+.trunk
+
+docs/build
+docs

@@ -6,11 +6,11 @@ const fs = require('fs').promises;
  * @class
  * @classdesc Handles file processing decisions based on size limits, file count limits, and allowed extensions.
  * Provides functionality to estimate project size and track statistics of processed files.
- * 
+ *
  * @param {?number} maxSize - Maximum allowed size per file in KB. Null means no limit.
  * @param {?number} maxFiles - Maximum number of files to process. Null means no limit.
  * @param {string[]} extensions - Array of allowed file extensions (e.g., ['.js', '.txt'])
- * 
+ *
  * @property {number} currentSize - Current total size of processed files in KB
  * @property {number} fileCount - Current count of processed files
  * @property {Set<string>} allowedExtensions - Set of allowed file extensions

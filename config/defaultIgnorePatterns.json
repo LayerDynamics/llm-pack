@@ -1,13 +1,14 @@
 {
-	"ignorePatterns": [
-		"node_modules/",
-		"dist/",
-		"coverage/",
-		"__tests__/",
-		"*.log",
-		"*.tmp",
-		"*.cache",
-		"**/*.spec.js",
-		"defaultIgnorePatterns.json"
-	]
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "coverage/",
+    "__tests__/",
+    "*.log",
+    "*.tmp",
+    "*.cache",
+    "**/*.spec.js",
+    "defaultIgnorePatterns.json",
+    "package-lock.json"
+  ]
 }

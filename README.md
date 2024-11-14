@@ -39,6 +39,7 @@ llm-pack
 ```
 
 This will:
+
 1. Scan your project directory
 2. Generate a Markdown file (`llm-pack-output.md`) with all relevant content
 3. Include a table of contents and syntax-highlighted code blocks
@@ -61,26 +62,31 @@ Options:
 ### Examples
 
 #### Generate JSON Output
+
 ```bash
 llm-pack --format json
 ```
 
 #### Custom Output Location
+
 ```bash
 llm-pack --output ./docs/project-content.md
 ```
 
 #### Add Custom Ignore Files
+
 ```bash
 llm-pack --ignore .customignore .otherignore
 ```
 
 #### Include Additional File Extensions
+
 ```bash
 llm-pack --extensions .tsx .jsx .vue
 ```
 
 #### Limit Output Size
+
 ```bash
 llm-pack --max-files 50 --max-file-size 100
 ```
@@ -91,31 +97,37 @@ llm-pack --max-files 50 --max-file-size 100
 
 The Markdown output follows this structure:
 
-```markdown
+````markdown
 # Table of Contents
 
 - [src/index.js](#src-index-js)
 - [README.md](#readme-md)
-...
+  ...
 
 # Project Content
 
-****************************************
-*********       src/index.js       *********
-****************************************
+---
+
+\***\*\*\*\*** src/index.js \***\*\*\*\***
+
+---
 
 ```javascript
 // Content of index.js
 ```
+````
 
-****************************************
-*********       README.md       *********
-****************************************
+---
+
+\***\*\*\*\*** README.md \***\*\*\*\***
+
+---
 
 ```markdown
 # Content of README.md
 ```
-```
+
+````
 
 #### JSON Output
 
@@ -134,13 +146,14 @@ When using `--format json`, the output follows this structure:
     "compacted": false
   }
 ]
-```
+````
 
 ## Default Behavior
 
 By default, LLM-Pack:
 
 1. Excludes common directories:
+
    - `node_modules`
    - `dist`
    - `coverage`
@@ -150,6 +163,7 @@ By default, LLM-Pack:
    - `cache`
 
 2. Supports common file extensions:
+
    - `.js`, `.jsx`
    - `.ts`, `.tsx`
    - `.json`
@@ -175,11 +189,13 @@ By default, LLM-Pack:
 ## Content Size Management
 
 When using `--max-file-size`:
+
 - Files larger than the specified size will be truncated
 - A note will be added to indicate truncation
 - The first 100 lines of the file will be included
 
 When using `--max-files`:
+
 - Only the specified number of files will be included
 - A warning will be displayed if files are skipped
 

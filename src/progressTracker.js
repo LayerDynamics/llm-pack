@@ -25,6 +25,10 @@ class ProgressTracker {
     this.updateInterval = 1000; // Update every second
   }
 
+  /**
+   * Updates the progress tracker with the size of the recently processed file.
+   * @param {number} fileSize - Size of the processed file in bytes.
+   */
   updateProgress(fileSize) {
     this.processedFiles++;
     this.processedSize += fileSize / 1024; // Convert to KB
@@ -36,6 +40,9 @@ class ProgressTracker {
     }
   }
 
+  /**
+   * Displays the current progress in the console.
+   */
   displayProgress() {
     const fileProgress = (this.processedFiles / this.totalFiles) * 100;
     const sizeProgress = (this.processedSize / this.totalSize) * 100;
@@ -53,6 +60,9 @@ class ProgressTracker {
     console.log(`Estimated Time Remaining: ${Math.round(remainingTime)}s`);
   }
 
+  /**
+   * Marks the progress as complete and logs the final statistics.
+   */
   complete() {
     const totalTime = (Date.now() - this.startTime) / 1000;
     console.log(chalk.green('\nProcessing Complete:'));

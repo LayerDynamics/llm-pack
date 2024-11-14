@@ -1,8 +1,5 @@
-// src/fileScanner.js
-
 const fs = require('fs').promises;
 const path = require('path');
-const IgnoreProcessor = require('./ignoreProcessor.js');
 
 /**
  * A class for scanning directories and filtering files based on extensions and ignore patterns.
@@ -20,8 +17,6 @@ const IgnoreProcessor = require('./ignoreProcessor.js');
  * @property {Array<string>} allowedExtensions - List of file extensions to include in scan results
  *
  * @see {@link IgnoreProcessor} for ignore pattern handling
- * @author Your Name
- * @version 1.0.0
  */
 class FileScanner {
   /**

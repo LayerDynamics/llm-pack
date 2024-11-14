@@ -1,10 +1,9 @@
-// src/main.js
 const path = require('path');
 const yargs = require('yargs');
 const { hideBin } = require('yargs/helpers');
 const chalk = require('chalk');
 const fs = require('fs').promises;
-const ConfigManager = require('../config/configManager'); 
+const ConfigManager = require('../config/configManager');
 const IgnoreProcessor = require('./ignoreProcessor');
 const FileScanner = require('./fileScanner');
 const ContentFormatter = require('./contentFormatter');
@@ -143,7 +142,7 @@ async function run(argv = process.argv.slice(2)) {
 
         try {
           const stats = await fs.stat(filePath);
-          const fileSizeKB = stats.size / 1024;
+          // const fileSizeKB = stats.size / 1024; // Removed unused variable
           const processDecision = contentSizeManager.shouldProcessFile(file, stats.size);
 
           if (!processDecision.shouldProcess) {

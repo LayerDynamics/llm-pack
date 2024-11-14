@@ -4,19 +4,19 @@ const readline = require('readline');
 /**
  * Class representing a stream processor for handling large files efficiently.
  */
- 
+
 /**
  * Creates a new StreamProcessor.
  * @param {number} [maxBufferSize=1024 * 1024] - The maximum buffer size in bytes.
  */
- 
+
 /**
  * Processes a large file and reads up to a maximum number of lines.
  * @param {string} filePath - The path to the file to process.
  * @param {number} [maxLines=100] - The maximum number of lines to read from the file.
  * @returns {Promise<string>} A promise that resolves with the content read from the file.
  */
- 
+
 /**
  * Estimates the total number of lines in a file.
  * @param {string} filePath - The path to the file.

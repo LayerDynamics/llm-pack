@@ -1,1 +1,1 @@
-console.log("Integration Test");
+console.log('Integration Test');

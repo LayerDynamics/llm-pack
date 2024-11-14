@@ -5,41 +5,45 @@
 - [largeFile.js](#largefilejs)
 - [testOutput.md](#testoutputmd)
 
+---
 
-*******************************
-*       README.md         *
-*******************************
+-       README.md         *
+
+---
 
 ```markdown
 # Integration Test
 ```
 
+---
 
-*******************************
-*       index.js         *
-*******************************
+-       index.js         *
 
-```javascript
-console.log("Integration Test");
-```
-
-
-*******************************
-*       largeFile.js         *
-*******************************
+---
 
 ```javascript
+console.log('Integration Test');
+```
+
+---
+
+-       largeFile.js         *
+
+---
+
+```javascript
 
 ```
-*Note: The content of this file was truncated due to size constraints.*
 
+_Note: The content of this file was truncated due to size constraints._
 
+---
 
-*******************************
-*       testOutput.md         *
-*******************************
+-       testOutput.md         *
 
-```markdown
+---
+
+````markdown
 # Table of Contents
 
 - [README.md](#readmemd)
@@ -47,41 +51,46 @@ console.log("Integration Test");
 - [largeFile.js](#largefilejs)
 - [testOutput.md](#testoutputmd)
 
+---
 
-*******************************
-*       README.md         *
-*******************************
+-       README.md         *
+
+---
 
 ```markdown
 # Integration Test
 ```
+````
 
+---
 
-*******************************
-*       index.js         *
-*******************************
+-       index.js         *
 
-```javascript
-console.log("Integration Test");
-```
-
-
-*******************************
-*       largeFile.js         *
-*******************************
+---
 
 ```javascript
+console.log('Integration Test');
+```
+
+---
+
+-       largeFile.js         *
+
+---
+
+```javascript
 
 ```
-*Note: The content of this file was truncated due to size constraints.*
 
+_Note: The content of this file was truncated due to size constraints._
 
+---
 
-*******************************
-*       testOutput.md         *
-*******************************
+-       testOutput.md         *
 
-```markdown
+---
+
+````markdown
 # Table of Contents
 
 - [README.md](#readmemd)
@@ -89,41 +98,46 @@ console.log("Integration Test");
 - [largeFile.js](#largefilejs)
 - [testOutput.md](#testoutputmd)
 
+---
 
-*******************************
-*       README.md         *
-*******************************
+-       README.md         *
+
+---
 
 ```markdown
 # Integration Test
 ```
+````
 
+---
 
-*******************************
-*       index.js         *
-*******************************
+-       index.js         *
 
-```javascript
-console.log("Integration Test");
-```
-
-
-*******************************
-*       largeFile.js         *
-*******************************
+---
 
 ```javascript
+console.log('Integration Test');
+```
+
+---
+
+-       largeFile.js         *
+
+---
+
+```javascript
 
 ```
-*Note: The content of this file was truncated due to size constraints.*
 
+_Note: The content of this file was truncated due to size constraints._
 
+---
 
-*******************************
-*       testOutput.md         *
-*******************************
+-       testOutput.md         *
 
-```markdown
+---
+
+````markdown
 # Table of Contents
 
 - [README.md](#readmemd)
@@ -131,41 +145,46 @@ console.log("Integration Test");
 - [largeFile.js](#largefilejs)
 - [testOutput.md](#testoutputmd)
 
+---
 
-*******************************
-*       README.md         *
-*******************************
+-       README.md         *
+
+---
 
 ```markdown
 # Integration Test
 ```
+````
 
+---
 
-*******************************
-*       index.js         *
-*******************************
+-       index.js         *
 
-```javascript
-console.log("Integration Test");
-```
-
-
-*******************************
-*       largeFile.js         *
-*******************************
+---
 
 ```javascript
+console.log('Integration Test');
+```
+
+---
+
+-       largeFile.js         *
+
+---
+
+```javascript
 
 ```
-*Note: The content of this file was truncated due to size constraints.*
 
+_Note: The content of this file was truncated due to size constraints._
 
+---
 
-*******************************
-*       testOutput.md         *
-*******************************
+-       testOutput.md         *
 
-```markdown
+---
+
+````markdown
 # Table of Contents
 
 - [README.md](#readmemd)
@@ -173,41 +192,46 @@ console.log("Integration Test");
 - [largeFile.js](#largefilejs)
 - [testOutput.md](#testoutputmd)
 
+---
 
-*******************************
-*       README.md         *
-*******************************
+-       README.md         *
+
+---
 
 ```markdown
 # Integration Test
 ```
+````
 
+---
 
-*******************************
-*       index.js         *
-*******************************
+-       index.js         *
 
-```javascript
-console.log("Integration Test");
-```
-
-
-*******************************
-*       largeFile.js         *
-*******************************
+---
 
 ```javascript
+console.log('Integration Test');
+```
+
+---
+
+-       largeFile.js         *
+
+---
+
+```javascript
 
 ```
-*Note: The content of this file was truncated due to size constraints.*
 
+_Note: The content of this file was truncated due to size constraints._
 
+---
 
-*******************************
-*       testOutput.md         *
-*******************************
+-       testOutput.md         *
 
-```markdown
+---
+
+````markdown
 # Table of Contents
 
 - [README.md](#readmemd)
@@ -215,75 +239,84 @@ console.log("Integration Test");
 - [largeFile.js](#largefilejs)
 - [testOutput.md](#testoutputmd)
 
+---
 
-*******************************
-*       README.md         *
-*******************************
+-       README.md         *
+
+---
 
 ```markdown
 # Integration Test
 ```
+````
 
+---
 
-*******************************
-*       index.js         *
-*******************************
+-       index.js         *
 
-```javascript
-console.log("Integration Test");
-```
-
-
-*******************************
-*       largeFile.js         *
-*******************************
+---
 
 ```javascript
+console.log('Integration Test');
+```
+
+---
+
+-       largeFile.js         *
+
+---
+
+```javascript
 
 ```
-*Note: The content of this file was truncated due to size constraints.*
 
+_Note: The content of this file was truncated due to size constraints._
 
+---
 
-*******************************
-*       testOutput.md         *
-*******************************
+-       testOutput.md         *
 
-```markdown
+---
+
+````markdown
 # Table of Contents
 
 - [README.md](#readmemd)
 - [index.js](#indexjs)
 - [largeFile.js](#largefilejs)
 
+---
 
-*******************************
-*       README.md         *
-*******************************
+-       README.md         *
+
+---
 
 ```markdown
 # Integration Test
 ```
+````
 
+---
 
-*******************************
-*       index.js         *
-*******************************
+-       index.js         *
 
-```javascript
-console.log("Integration Test");
-```
-
-
-*******************************
-*       largeFile.js         *
-*******************************
+---
 
 ```javascript
+console.log('Integration Test');
+```
+
+---
+
+-       largeFile.js         *
+
+---
+
+```javascript
 
 ```
-*Note: The content of this file was truncated due to size constraints.*
 
+_Note: The content of this file was truncated due to size constraints._
 
 ```
 

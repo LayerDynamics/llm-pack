@@ -3,7 +3,7 @@ name: Generate Docs
 on:
   push:
     branches:
-      - main  # or the branch you use for primary development
+      - main # or the branch you use for primary development
 
 jobs:
   build:

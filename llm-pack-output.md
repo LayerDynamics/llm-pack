@@ -8,27 +8,30 @@
 
 # Project Content
 
-****************************************
-*********       bin/index.js       *********
-****************************************
+---
+
+****\***** bin/index.js ****\*****
+
+---
+
 ```javascript
 #!/usr/bin/env node
 
 // bin/index.js
 
-const { run } = require("../src/main.js");
+const { run } = require('../src/main.js');
 
 run();
-
 ```
 
-****************************************
-*********       config/configManager.js       *********
-****************************************
+---
+
+****\***** config/configManager.js ****\*****
+
+---
+
 ```javascript
-// config/configManager.js
 const fs = require('fs').promises;
-const path = require('path');
 const yaml = require('js-yaml');
 
 class ConfigManager {
@@ -139,12 +142,14 @@ class ConfigManager {
 }
 
 module.exports = ConfigManager;
-
 ```
 
-****************************************
-*********       jsdoc.json       *********
-****************************************
+---
+
+****\***** jsdoc.json ****\*****
+
+---
+
 ```json
 {
   "source": {
@@ -163,12 +168,14 @@ module.exports = ConfigManager;
     "monospaceLinks": true
   }
 }
-
 ```
 
-****************************************
-*********       package-lock.json       *********
-****************************************
+---
+
+****\***** package-lock.json ****\*****
+
+---
+
 ```json
 {
   "name": "llm-pack",
@@ -199,9 +206,10 @@ module.exports = ConfigManager;
         "babel-jest": "^29.7.0",
         "eslint": "^8.57.0",
         "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-prettier": "^5.2.1",
         "jest": "^29.7.0",
         "jsdoc": "^4.0.2",
-        "prettier": "^3.2.5"
+        "prettier": "^3.3.3"
       },
       "engines": {
         "node": ">=14.0.0"
@@ -2602,6 +2610,19 @@ module.exports = ConfigManager;
         "node": ">= 8"
       }
     },
+    "node_modules/@pkgr/core": {
+      "version": "0.1.1",
+      "resolved": "https://registry.npmjs.org/@pkgr/core/-/core-0.1.1.tgz",
+      "integrity": "sha512-cq8o4cWH0ibXh9VGi5P20Tu9XF/0fFXl9EUinr9QfTM7a7p0oTA4iJRCQWppXR1Pg8dSM0UCItCkPwsk9qWWYA==",
+      "dev": true,
+      "license": "MIT",
+      "engines": {
+        "node": "^12.20.0 || ^14.18.0 || >=16.0.0"
+      },
+      "funding": {
+        "url": "https://opencollective.com/unts"
+      }
+    },
     "node_modules/@sinclair/typebox": {
       "version": "0.27.8",
       "resolved": "https://registry.npmjs.org/@sinclair/typebox/-/typebox-0.27.8.tgz",
@@ -3602,6 +3623,37 @@ module.exports = ConfigManager;
         "eslint": ">=7.0.0"
       }
     },
+    "node_modules/eslint-plugin-prettier": {
+      "version": "5.2.1",
+      "resolved": "https://registry.npmjs.org/eslint-plugin-prettier/-/eslint-plugin-prettier-5.2.1.tgz",
+      "integrity": "sha512-gH3iR3g4JfF+yYPaJYkN7jEl9QbweL/YfkoRlNnuIEHEz1vHVlCmWOS+eGGiRuzHQXdJFCOTxRgvju9b8VUmrw==",
+      "dev": true,
+      "license": "MIT",
+      "dependencies": {
+        "prettier-linter-helpers": "^1.0.0",
+        "synckit": "^0.9.1"
+      },
+      "engines": {
+        "node": "^14.18.0 || >=16.0.0"
+      },
+      "funding": {
+        "url": "https://opencollective.com/eslint-plugin-prettier"
+      },
+      "peerDependencies": {
+        "@types/eslint": ">=8.0.0",
+        "eslint": ">=8.0.0",
+        "eslint-config-prettier": "*",
+        "prettier": ">=3.0.0"
+      },
+      "peerDependenciesMeta": {
+        "@types/eslint": {
+          "optional": true
+        },
+        "eslint-config-prettier": {
+          "optional": true
+        }
+      }
+    },
     "node_modules/eslint-scope": {
       "version": "7.2.2",
       "resolved": "https://registry.npmjs.org/eslint-scope/-/eslint-scope-7.2.2.tgz",
@@ -3871,6 +3923,13 @@ module.exports = ConfigManager;
       "dev": true,
       "license": "MIT"
     },
+    "node_modules/fast-diff": {
+      "version": "1.3.0",
+      "resolved": "https://registry.npmjs.org/fast-diff/-/fast-diff-1.3.0.tgz",
+      "integrity": "sha512-VxPP4NqbUjj6MaAOafWeUn2cXWLcCtljklUtZf0Ind4XQ+QPtmA0b18zZy0jIQx+ExRVCR/ZQpBmik5lXshNsw==",
+      "dev": true,
+      "license": "Apache-2.0"
+    },
     "node_modules/fast-glob": {
       "version": "3.3.2",
       "resolved": "https://registry.npmjs.org/fast-glob/-/fast-glob-3.3.2.tgz",
@@ -3996,9 +4055,7 @@ module.exports = ConfigManager;
       "hasInstallScript": true,
       "license": "MIT",
       "optional": true,
-      "os": [
-        "darwin"
-      ],
+      "os": ["darwin"],
       "engines": {
         "node": "^8.16.0 || ^10.6.0 || >=11.0.0"
       }
@@ -5820,6 +5877,19 @@ module.exports = ConfigManager;
         "url": "https://github.com/prettier/prettier?sponsor=1"
       }
     },
+    "node_modules/prettier-linter-helpers": {
+      "version": "1.0.0",
+      "resolved": "https://registry.npmjs.org/prettier-linter-helpers/-/prettier-linter-helpers-1.0.0.tgz",
+      "integrity": "sha512-GbK2cP9nraSSUF9N2XwUwqfzlAFlMNYYl+ShE/V+H8a9uNl/oUqB1w2EL54Jh0OlyRSd8RfWYJ3coVS4TROP2w==",
+      "dev": true,
+      "license": "MIT",
+      "dependencies": {
+        "fast-diff": "^1.1.2"
+      },
+      "engines": {
+        "node": ">=6.0.0"
+      }
+    },
     "node_modules/pretty-format": {
       "version": "29.7.0",
       "resolved": "https://registry.npmjs.org/pretty-format/-/pretty-format-29.7.0.tgz",
@@ -6319,6 +6389,23 @@ module.exports = ConfigManager;
         "url": "https://github.com/sponsors/ljharb"
       }
     },
+    "node_modules/synckit": {
+      "version": "0.9.2",
+      "resolved": "https://registry.npmjs.org/synckit/-/synckit-0.9.2.tgz",
+      "integrity": "sha512-vrozgXDQwYO72vHjUb/HnFbQx1exDjoKzqx23aXEg2a9VIg2TSFZ8FmeZpTjUCFMYw7mpX4BE2SFu8wI7asYsw==",
+      "dev": true,
+      "license": "MIT",
+      "dependencies": {
+        "@pkgr/core": "^0.1.0",
+        "tslib": "^2.6.2"
+      },
+      "engines": {
+        "node": "^14.18.0 || >=16.0.0"
+      },
+      "funding": {
+        "url": "https://opencollective.com/unts"
+      }
+    },
     "node_modules/test-exclude": {
       "version": "6.0.0",
       "resolved": "https://registry.npmjs.org/test-exclude/-/test-exclude-6.0.0.tgz",
@@ -6359,6 +6446,13 @@ module.exports = ConfigManager;
       "engines": {
         "node": ">=8.0"
       }
+    },
+    "node_modules/tslib": {
+      "version": "2.8.1",
+      "resolved": "https://registry.npmjs.org/tslib/-/tslib-2.8.1.tgz",
+      "integrity": "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==",
+      "dev": true,
+      "license": "0BSD"
     },
     "node_modules/type-check": {
       "version": "0.4.0",
@@ -6667,12 +6761,14 @@ module.exports = ConfigManager;
     }
   }
 }
-
 ```
 
-****************************************
-*********       package.json       *********
-****************************************
+---
+
+****\***** package.json ****\*****
+
+---
+
 ```json
 {
   "name": "llm-pack",
@@ -6686,7 +6782,9 @@ module.exports = ConfigManager;
     "test": "jest --config jest.config.cjs",
     "test:coverage": "jest --coverage",
     "docs": "jsdoc -c jsdoc.json",
-    "lint": "eslint .",
+    "format": "prettier --write .",
+    "lint": "eslint . --config .eslintrc.js",
+    "lint-fix": "eslint . --config .eslintrc.js --fix",
     "benchmark": "node src/performance/benchmark.js"
   },
   "type": "commonjs",
@@ -6706,16 +6804,12 @@ module.exports = ConfigManager;
     "babel-jest": "^29.7.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
     "jest": "^29.7.0",
     "jsdoc": "^4.0.2",
-    "prettier": "^3.2.5"
+    "prettier": "^3.3.3"
   },
-  "keywords": [
-    "llm",
-    "documentation",
-    "code-aggregator",
-    "cli"
-  ],
+  "keywords": ["llm", "documentation", "code-aggregator", "cli"],
   "author": "Ryan O'Boyle, LayerDynamics <layerdynamics@proton.me>",
   "license": "Unlicense",
   "repository": {
@@ -6730,5 +6824,4 @@ module.exports = ConfigManager;
     "node": ">=14.0.0"
   }
 }
-
 ```

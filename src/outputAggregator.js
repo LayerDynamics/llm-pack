@@ -1,43 +1,18 @@
 const fs = require('fs/promises');
-const path = require('path');
 
 /**
  * Class representing a content formatter.
- */
-
-/**
- * Creates an instance of ContentFormatter.
- * @param {string} format - The format to aggregate content into ('markdown' or 'json').
- */
-
-/**
- * Aggregates the provided contents based on the specified format.
- * @param {Array} contents - An array of content objects to aggregate.
- * @returns {string|Object} The aggregated content in the specified format.
- */
-
-/**
- * Aggregates contents into Markdown format, including a Table of Contents.
- * @param {Array} contents - An array of content objects to aggregate.
- * @returns {string} The aggregated Markdown content.
- */
-
-/**
- * Aggregates contents into JSON format.
- * @param {Array} contents - An array of content objects to aggregate.
- * @returns {string} The aggregated JSON string.
- */
-
-/**
- * Sanitizes a file path to create a markdown anchor.
- * @param {string} filePath - The file path to sanitize.
- * @returns {string} The sanitized anchor string.
  */
 class ContentFormatter {
   constructor(format) {
     this.format = format;
   }
 
+  /**
+   * Aggregates the provided contents based on the specified format.
+   * @param {Array} contents - An array of content objects to aggregate.
+   * @returns {string|Object} The aggregated content in the specified format.
+   */
   aggregate(contents) {
     if (this.format === 'markdown') {
       return this.aggregateMarkdown(contents);
@@ -46,6 +21,11 @@ class ContentFormatter {
     }
   }
 
+  /**
+   * Aggregates contents into Markdown format, including a Table of Contents.
+   * @param {Array} contents - An array of content objects to aggregate.
+   * @returns {string} The aggregated Markdown content.
+   */
   aggregateMarkdown(contents) {
     // Generate ToC
     let toc = '# Table of Contents\n\n';
@@ -61,11 +41,21 @@ class ContentFormatter {
     return result;
   }
 
+  /**
+   * Aggregates contents into JSON format.
+   * @param {Array} contents - An array of content objects to aggregate.
+   * @returns {string} The aggregated JSON string.
+   */
   aggregateJson(contents) {
     const jsonContents = contents.map((item) => item.formattedContent);
     return JSON.stringify(jsonContents, null, 2);
   }
 
+  /**
+   * Sanitizes a file path to create a markdown anchor.
+   * @param {string} filePath - The file path to sanitize.
+   * @returns {string} The sanitized anchor string.
+   */
   sanitizeAnchor(filePath) {
     return filePath
       .toLowerCase()
@@ -79,7 +69,15 @@ class ContentFormatter {
   }
 }
 
+/**
+ * Class representing an output aggregator.
+ */
 class OutputAggregator {
+  /**
+   * Creates an instance of OutputAggregator.
+   * @param {string} format - The format to aggregate content into ('markdown' or 'json').
+   * @param {string} outputPath - The path where the aggregated output will be saved.
+   */
   constructor(format = 'markdown', outputPath = 'llm-pack-output') {
     this.format = format.toLowerCase();
     if (!['markdown', 'json'].includes(this.format)) {
@@ -95,10 +93,19 @@ class OutputAggregator {
     this.formatter = new ContentFormatter(this.format);
   }
 
+  /**
+   * Aggregates contents.
+   * @param {Array} contents - An array of content objects to aggregate.
+   * @returns {string|Object} The aggregated content.
+   */
   aggregateContents(contents) {
     return this.formatter.aggregate(contents);
   }
 
+  /**
+   * Saves the aggregated content to the output file.
+   * @param {string|Object} content - The aggregated content to save.
+   */
   async saveOutput(content) {
     await fs.writeFile(this.outputPath, content, 'utf-8');
     console.log(`Output saved to ${this.outputPath}`);
