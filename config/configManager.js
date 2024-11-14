@@ -1,11 +1,14 @@
 const fs = require('fs').promises;
 const yaml = require('js-yaml');
 
+/**
+ * Manages the application's configuration settings by loading, validating, and merging
+ * default and user-provided configurations.
+ *
+ * @class ConfigManager
+ * @param {string|null} [configPath=null] - Path to the configuration file. If null, the default configuration is used.
+ */
 class ConfigManager {
-  /**
-   * Creates a ConfigManager instance.
-   * @param {string} configPath - Path to configuration file
-   */
   constructor(configPath = null) {
     this.defaultConfig = {
       output: {
@@ -38,8 +41,10 @@ class ConfigManager {
   }
 
   /**
-   * Loads and validates configuration.
-   * @returns {Promise<Object>} Validated configuration
+   * Asynchronously loads and merges the configuration from a YAML file with the default configuration.
+   *
+   * @returns {Promise<Object>} A promise that resolves to the merged configuration object.
+   * @throws {Error} If the configuration file cannot be loaded or parsed.
    */
   async loadConfig() {
     try {

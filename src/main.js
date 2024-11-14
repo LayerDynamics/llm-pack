@@ -133,6 +133,23 @@ async function run(argv = process.argv.slice(2)) {
       process.exit(0);
     }
 
+    /**
+     * Formats the contents of multiple files based on processing decisions.
+     *
+     * @async
+     * @function
+     * @param {string[]} files - An array of file paths to be processed.
+     * @param {string} rootDir - The root directory path for resolving file paths.
+     * @param {ContentFormatter} contentFormatter - Instance responsible for formatting file contents.
+     * @param {ContentSizeManager} contentSizeManager - Manages decisions based on file size and project limits.
+     * @param {StreamProcessor} streamProcessor - Handles processing of large files efficiently.
+     * @param {ProgressTracker} progressTracker - Tracks the progress of file processing.
+     * @param {ErrorHandler} errorHandler - Handles and logs errors and warnings during processing.
+     * @returns {Promise<Array<{ filePath: string, formattedContent: string } | null>>}
+     *          A promise that resolves to an array of objects containing file paths and their formatted contents,
+     *          or null for files that were skipped or encountered errors.
+     */
+
     const contentFormatter = new ContentFormatter(options.format);
     const formattedContents = await Promise.all(
       files.map(async (file) => {

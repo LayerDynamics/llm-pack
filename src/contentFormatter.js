@@ -62,11 +62,25 @@ class ContentFormatter {
     };
   }
 
+  /**
+   * Retrieves the language associated with the given file path based on its extension.
+   *
+   * @param {string} filePath - The path to the file.
+   * @returns {string} The corresponding language, or an empty string if not found.
+   */
   getLanguage(filePath) {
     const ext = path.extname(filePath).substring(1).toLowerCase();
     return this.langMap[ext] || '';
   }
 
+  /**
+   * Generates a consistent anchor ID from a given file path by
+   * converting to lowercase, replacing slashes and dots with hyphens,
+   * removing non-word characters, and trimming leading/trailing hyphens.
+   *
+   * @param {string} filePath - The file path to convert into an anchor ID.
+   * @returns {string} The generated anchor ID.
+   */
   createAnchorId(filePath) {
     // Consistency: always use the format with hyphens between words
     return filePath

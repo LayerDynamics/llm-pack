@@ -1,49 +1,84 @@
-name: Generate Docs
+name: CI Pipeline
+
+permissions:
+  contents: read
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'src/**'
-      - 'docs/**'
-      - '*.js'
-      - '*.json'
-      - 'README.md'
-  workflow_dispatch:  # Allows manual triggering
-
-permissions:
-  contents: write
-  pages: write
-  id-token: write
+    branches: [main]
+    paths-ignore:
+      - docs/**
+      - '*.md'
+      - LICENSE
+      - .github/workflows/release-publish.yml
+      - .github/workflows/generate-docs.yml
+      - .github/workflows/codeql.yml
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - docs/**
+      - '*.md'
+      - LICENSE
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-    steps:
-      - name: Check out the repository
-        uses: actions/checkout@v4
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
 
-      - name: Set up Node.js
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: Generate coverage report
+        run: npm run test:coverage
+
+  security:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 20.x
         uses: actions/setup-node@v4
         with:
           node-version: 20.x
           cache: npm
 
       - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: npm audit
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true # Don't fail the build on Snyk issues
+
+  # Optional: Add status check for successful CI
+  status-check:
+    needs: [test, security]
+    runs-on: ubuntu-latest
+    steps:
+      - name: CI Pipeline Status
         run: |
-          npm ci
-          npm install -g jsdoc
-          npm install clean-jsdoc-theme
-
-      - name: Generate documentation
-        run: npm run docs
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/build
-          publish_branch: gh-pages
-          force_orphan: true
-          enable_jekyll: false
+          echo "All checks completed successfully!"
+          echo "- Tests passed across all Node.js versions"
+          echo "- Security checks completed"
