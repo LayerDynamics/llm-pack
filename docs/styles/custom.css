@@ -1,0 +1,123 @@
+/* docs/styles/custom.css */
+
+/* Enhanced Navigation */
+.navigation {
+    background-color: #1a1a1a;
+    border-right: 1px solid #333;
+}
+
+/* Method Signatures */
+h4.name {
+    background: linear-gradient(to right, #2a2a2a, #3a3a3a);
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 4px solid #2ecc71;
+    margin-top: 25px;
+}
+
+/* Tables */
+.params, .props {
+    border-spacing: 0;
+    border: 1px solid #444;
+    border-radius: 5px;
+    width: 100%;
+    margin: 15px 0;
+}
+
+.params thead tr, .props thead tr {
+    background-color: #2a2a2a;
+}
+
+.params td, 
+.params th,
+.props td,
+.props th {
+    padding: 12px;
+    border: 1px solid #444;
+}
+
+/* Code Blocks */
+pre.prettyprint {
+    background-color: #2d2d2d !important;
+    border: 1px solid #444 !important;
+    border-radius: 5px;
+    padding: 15px !important;
+}
+
+.prettyprint code {
+    background-color: transparent;
+    color: #e6e6e6;
+}
+
+/* Type Signatures */
+.type-signature {
+    color: #2ecc71;
+}
+
+/* Source Links */
+.details {
+    background-color: #2a2a2a;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+/* Example Sections */
+.example {
+    background-color: #2a2a2a;
+    padding: 15px;
+    border-radius: 5px;
+    margin: 15px 0;
+    border-left: 4px solid #3498db;
+}
+
+/* Main Content Area */
+#main {
+    padding: 20px;
+}
+
+/* Article Elements */
+article {
+    background-color: #222;
+    padding: 20px;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+/* Section Headers */
+h1, h2, h3, h4, h5, h6 {
+    color: #3498db;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+/* Links */
+a {
+    color: #3498db;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #2ecc71;
+    text-decoration: underline;
+}
+
+/* Search Box */
+#search-box {
+    background-color: #2d2d2d;
+    border: 1px solid #444;
+    color: #fff;
+    padding: 8px;
+    border-radius: 4px;
+    width: 100%;
+    max-width: 300px;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    background-color: #2a2a2a;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+}
