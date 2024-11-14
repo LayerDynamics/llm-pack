@@ -5,17 +5,22 @@ on:
     branches:
       - main # or the branch you use for primary development
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: '21.x' # or your required version
+          node-version: 21.x # or your required version
 
       - name: Install dependencies
         run: npm install
@@ -24,7 +29,7 @@ jobs:
         run: npm run docs
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs/build
