@@ -20,10 +20,14 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 21.x # or your required version
+          node-version: 20.x
+          cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm ci
+          npm install -g jsdoc
+          npm install clean-jsdoc-theme
 
       - name: Generate documentation
         run: npm run docs
@@ -34,9 +38,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs/build
           publish_branch: gh-pages
-          allow_empty_commit: false
-          keep_files: false
           force_orphan: true
           enable_jekyll: false
-          disable_nojekyll: false
-          exclude_assets: .github
+          

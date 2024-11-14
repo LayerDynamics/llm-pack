@@ -5,12 +5,10 @@ on:
     types: [created]
 
 permissions:
-  contents: write
-  pages: write
-  id-token: write
+  contents: read
 
 jobs:
-  publish-and-deploy:
+  publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,10 +21,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: |
-          npm ci
-          npm install -g jsdoc
-          npm install taffydb ink-docstrap
+        run: npm ci
 
       - name: Run tests
         run: |
@@ -37,19 +32,7 @@ jobs:
       - name: Security audit
         run: npm audit
 
-      - name: Generate documentation
-        run: npm run docs
-
       - name: Publish to NPM
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Deploy documentation
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/build
-          publish_branch: gh-pages
-          force_orphan: true
-          enable_jekyll: false
