@@ -3,7 +3,14 @@ name: Generate Docs
 on:
   push:
     branches:
-      - main # or the branch you use for primary development
+      - main
+    paths:
+      - 'src/**'
+      - 'docs/**'
+      - '*.js'
+      - '*.json'
+      - 'README.md'
+  workflow_dispatch:  # Allows manual triggering
 
 permissions:
   contents: write
@@ -40,4 +47,3 @@ jobs:
           publish_branch: gh-pages
           force_orphan: true
           enable_jekyll: false
-          
