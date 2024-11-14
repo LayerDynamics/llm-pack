@@ -1,0 +1,55 @@
+name: Release and Publish
+
+on:
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  publish-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm install -g jsdoc
+          npm install taffydb ink-docstrap
+
+      - name: Run tests
+        run: |
+          npm run lint
+          npm test
+          npm run test:coverage
+
+      - name: Security audit
+        run: npm audit
+
+      - name: Generate documentation
+        run: npm run docs
+
+      - name: Publish to NPM
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Deploy documentation
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/build
+          publish_branch: gh-pages
+          force_orphan: true
+          enable_jekyll: false
