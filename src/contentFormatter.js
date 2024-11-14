@@ -1,6 +1,5 @@
 const path = require('path');
 const { createAsciiSeparator } = require('./outputStyles');
-
 /**
  * Class representing a content formatter.
  */

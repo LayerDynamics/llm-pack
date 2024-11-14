@@ -1,5 +1,10 @@
 name: CI/CD Pipeline
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 on:
   push:
     branches: [main]
@@ -21,7 +26,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: npm
       - run: npm ci
       - run: npm run lint
       - run: npm test
@@ -34,7 +39,7 @@ jobs:
       - name: Use Node.js 20.x
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: 20.x
       - run: npm audit
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/node@master
@@ -50,8 +55,8 @@ jobs:
       - name: Use Node.js 20.x
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: 20.x
+          registry-url: https://registry.npmjs.org
       - run: npm ci
       - run: npm publish
         env:
@@ -65,12 +70,12 @@ jobs:
       - name: Use Node.js 20.x
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: 20.x
       - run: npm ci
       - name: Generate Documentation
         run: npm run docs
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs/build

@@ -149,6 +149,7 @@ class FileScanner {
       'coverage',
       'temp',
       'cache',
+      'package-lock.json',
       // Add more commonly ignored directories as needed
     ];
     return ignoredDirs.includes(dirname);

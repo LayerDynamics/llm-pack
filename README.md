@@ -112,7 +112,7 @@ The Markdown output follows this structure:
 
 ---
 
-```javascript
+```js
 // Content of index.js
 ```
 ````
@@ -123,18 +123,16 @@ The Markdown output follows this structure:
 
 ---
 
-```markdown
+```md
 # Content of README.md
 ```
-
-````
 
 #### JSON Output
 
 When using `--format json`, the output follows this structure:
 
 ```json
-[
+{
   {
     "filePath": "src/index.js",
     "content": "// Content of index.js",
@@ -145,8 +143,8 @@ When using `--format json`, the output follows this structure:
     "content": "# Content of README.md",
     "compacted": false
   }
-]
-````
+}
+```
 
 ## Default Behavior
 
@@ -217,9 +215,9 @@ This project is licensed under the Unlicense License - see the [LICENSE](LICENSE
 
 ## Author
 
-Ryan O'Boyle, LayerDynamics  
-Email: layerdynamics@proton.me  
-GitHub: https://github.com/LayerDynamics/llm-pack.git
+LayerDynamics(Ryan O'Boyle)
+Email: [layerdynamics@proton.me](mailto:layerdynamics@proton.me)
+GitHub: [https://github.com/LayerDynamics/llm-pack.git](https://github.com/LayerDynamics/llm-pack.git)
 
 ## Changelog
 

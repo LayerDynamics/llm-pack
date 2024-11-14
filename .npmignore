@@ -67,6 +67,7 @@ docs
 .github
 coverage
 .trunk
-
 docs/build
 docs
+llm-pack-output.md
+package-lock.json

@@ -52,7 +52,7 @@
   "bugs": {
     "url": "https://github.com/LayerDynamics/llm-pack/issues"
   },
-  "homepage": "https://github.com/LayerDynamics/llm-pack#readme",
+  "homepage": "https://layerdynamics.github.io/llm-pack/index.html",
   "engines": {
     "node": ">=14.0.0"
   }
