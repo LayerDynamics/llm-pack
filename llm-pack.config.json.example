@@ -1,0 +1,58 @@
+{
+  "output": {
+    "format": "markdown",
+    "path": "./llm-pack-output",
+    "createDirectory": true
+  },
+  "limits": {
+    "maxFileSize": 1024,
+    "maxFiles": null,
+    "maxTotalSize": null
+  },
+  "processing": {
+    "batchSize": 100,
+    "streamingThreshold": 512,
+    "compactLargeFiles": true,
+    "enableWorkers": true,
+    "maxWorkers": 4
+  },
+  "extensions": {
+    "include": [".js", ".jsx", ".ts", ".tsx", ".md", ".json"],
+    "exclude": [".min.js", ".map"]
+  },
+  "ignore": {
+    "customPatterns": [],
+    "extendGitignore": true,
+    "defaultIgnores": true
+  },
+  "normalization": {
+    "normalizeLineEndings": true,
+    "normalizeWhitespace": true,
+    "removeHtmlTags": false,
+    "preserveCodeBlocks": true
+  },
+  "memoryLimits": {
+    "maxHeapUsage": null,
+    "checkInterval": 1000,
+    "gcThreshold": null
+  },
+  "performance": {
+    "enableMemoryMonitoring": false,
+    "streamingThreshold": 5242880,
+    "progressReporting": false
+  },
+  "compaction": {
+    "enable": false,
+    "maxLines": 100,
+    "contextLines": 3,
+    "importanceThreshold": 0.6,
+    "minCompactionRatio": 0.3,
+    "preserveStructure": true
+  },
+  "formatting": {
+    "theme": "github",
+    "highlightSyntax": true,
+    "createToc": true,
+    "includeMetadata": true
+  }
+}

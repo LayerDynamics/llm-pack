@@ -1,3 +1,4 @@
+// main.js
 const path = require('path');
 const yargs = require('yargs');
 const { hideBin } = require('yargs/helpers');
@@ -12,20 +13,240 @@ const ContentSizeManager = require('./contentSizeManager');
 const ProgressTracker = require('./progressTracker');
 const StreamProcessor = require('./streamProcessor');
 const ErrorHandler = require('./errorHandler');
+const CodeCompactor = require('./codeCompactor');
 
 /**
- * Runs the llm-pack CLI tool.
- * @param {string[]} argv - Command-line arguments.
+ * Generates the detailed help text for the CLI
+ * @returns {string} Formatted help text
  */
+function generateDetailedHelp() {
+  return `
+LLM-Pack: Project Content Aggregator for Large Language Models
+
+Description:
+  A command-line tool for aggregating project content and optimizing it for Large Language Models (LLMs).
+  Processes directories recursively, respects ignore patterns, and generates optimized, structured output.
+
+Usage:
+  llm-pack [options]
+
+Basic Options:
+  -f, --format           Output format (markdown or json)                      [default: "markdown"]
+  -o, --output          Output file path                                      [default: "llm-pack-output.{md|json}"]
+  -i, --ignore          Custom ignore files                                   [array]
+  -e, --extensions      Additional file extensions to include                  [array]
+  -h, --help           Show help                                             [boolean]
+  -v, --version        Show version number                                   [boolean]
+
+Content Processing Options:
+  --max-files          Maximum number of files to include                    [number]
+  --max-file-size      Maximum file size in kilobytes                       [number]
+  --use-compactor      Enable code compaction                               [boolean] [default: false]
+  --compact-lines      Maximum lines before compaction                       [number] [default: 100]
+  --context-lines      Context lines to preserve                            [number] [default: 3]
+  --importance         Importance threshold for code preservation (0-1)      [number] [default: 0.6]
+
+Normalization Options:
+  --normalize-line-endings   Normalize line endings across files             [boolean] [default: true]
+  --normalize-whitespace    Normalize whitespace in content                  [boolean] [default: true]
+  --remove-html            Remove HTML tags from content                     [boolean] [default: false]
+  --preserve-code-blocks   Preserve formatting in code blocks                [boolean] [default: true]
+
+Performance Options:
+  --enable-workers             Enable parallel processing                    [boolean] [default: false]
+  --max-workers               Maximum number of worker threads              [number] [default: 4]
+  --enable-memory-monitoring  Enable memory usage monitoring                [boolean] [default: false]
+  --chunk-size               Size of chunks for streaming in bytes          [number] [default: 65536]
+  --progress                 Enable detailed progress reporting             [boolean] [default: false]
+
+Examples:
+  # Basic usage with default settings
+  llm-pack
+
+  # Generate JSON output with custom file size limit
+  llm-pack --format json --max-file-size 500
+
+  # Use parallel processing with normalization
+  llm-pack --enable-workers --max-workers 4 --normalize-whitespace
+
+  # Enable code compaction with custom settings
+  llm-pack --use-compactor --compact-lines 50 --context-lines 2
+
+  # Custom output with specific normalizations
+  llm-pack --output ./docs/output.md --normalize-line-endings --remove-html
+
+Notes:
+  - File size limits are in kilobytes
+  - Worker threads can significantly improve performance for large projects
+  - Normalization options help ensure consistent output
+  - Code compaction preserves important code while reducing size
+  - Progress reporting provides real-time processing information
+
+For more information visit: https://github.com/LayerDynamics/llm-pack
+`;
+}
+
 /**
- * Executes the llm-pack CLI application.
- *
- * Processes command-line arguments, loads configuration, scans files,
- * formats content, and outputs aggregated results based on the specified options.
- *
- * @async
- * @param {string[]} [argv=process.argv.slice(2)] - Command-line arguments array.
- * @returns {Promise<void>} Resolves when the application has finished running.
+ * Initializes application components
+ * @param {Object} options Configuration options
+ * @param {string} rootDir Project root directory
+ * @returns {Promise<Object>} Initialized components
+ */
+async function initializeComponents(options, rootDir) {
+  const ignoreProcessor = new IgnoreProcessor(options.ignoreFiles);
+
+  const contentSizeManager = new ContentSizeManager(
+    options.maxFileSize,
+    options.maxFiles,
+    options.extensions
+  );
+
+  const fileScanner = new FileScanner(rootDir, ignoreProcessor, options.extensions);
+
+  const streamProcessor = new StreamProcessor({
+    maxBufferSize: options.maxBufferSize,
+    chunkSize: options.chunkSize,
+    enableMemoryMonitoring: options.enableMemoryMonitoring,
+    enableProgressReporting: options.progress,
+    enableWorkers: options.enableWorkers,
+    maxWorkers: options.maxWorkers,
+    ...options.normalization,
+  });
+
+  const contentFormatter = new ContentFormatter(options.format, {
+    theme: options.theme,
+    highlightSyntax: true,
+    ...options.normalization,
+  });
+
+  let codeCompactor = null;
+  if (options.useCompactor && !options.enableWorkers) {
+    codeCompactor = new CodeCompactor({
+      maxLines: options.compactLines,
+      contextLines: options.contextLines,
+      preserveStructure: true,
+      importanceThreshold: options.importanceThreshold,
+      minCompactionRatio: 0.3,
+    });
+  }
+
+  return {
+    ignoreProcessor,
+    contentSizeManager,
+    fileScanner,
+    streamProcessor,
+    contentFormatter,
+    codeCompactor,
+  };
+}
+
+/**
+ * Process a single file
+ * @param {string} file File path
+ * @param {Object} components Initialized components
+ * @param {Object} options Configuration options
+ * @param {Object} context Processing context
+ * @returns {Promise<Object|null>} Processed content or null if skipped
+ */
+async function processFile(file, components, options, context) {
+  const { contentSizeManager, streamProcessor, contentFormatter, codeCompactor } = components;
+  const { rootDir, errorHandler, progressTracker } = context;
+
+  // Sanitize input filename
+  if (!file || typeof file !== 'string' || !file.match(/^[a-zA-Z0-9-_./\\]+$/)) {
+    errorHandler.addWarning(`Invalid filename: ${file}`, 'FileProcessor');
+    return null;
+  }
+
+  // Get absolute paths and normalize
+  const absoluteRootDir = path.resolve(rootDir);
+  const normalizedPath = path.resolve(absoluteRootDir, file);
+
+  // Path traversal checks
+  if (!normalizedPath.startsWith(absoluteRootDir)) {
+    errorHandler.addWarning(`Invalid path ${file}: Path traversal detected`, 'FileProcessor');
+    return null;
+  }
+
+  const relativePath = path.relative(absoluteRootDir, normalizedPath);
+  if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+    errorHandler.addWarning(`Invalid path ${file}: Path traversal detected`, 'FileProcessor');
+    return null;
+  }
+
+  try {
+    const stats = await fs.stat(normalizedPath);
+
+    if (!stats.isFile()) {
+      errorHandler.addWarning(`Not a file: ${file}`, 'FileProcessor');
+      return null;
+    }
+
+    const processDecision = contentSizeManager.shouldProcessFile(file, stats.size);
+
+    if (!processDecision.shouldProcess) {
+      errorHandler.addWarning(`Skipping ${file}: ${processDecision.reason}`, 'FileProcessor');
+      return null;
+    }
+
+    const realPath = await fs.realpath(normalizedPath);
+    if (!realPath.startsWith(absoluteRootDir)) {
+      throw new Error('Invalid file path: Path traversal detected');
+    }
+
+    let content;
+    let compacted = false;
+
+    if (options.enableWorkers && streamProcessor.fileProcessor) {
+      const result = await streamProcessor.fileProcessor.processFile(realPath, {
+        streamingThreshold: options.streamingThreshold || 5 * 1024 * 1024,
+        compactLines: options.compactLines,
+        contextLines: options.contextLines,
+        importanceThreshold: options.importanceThreshold,
+        normalizationOptions: options.normalization,
+      });
+
+      if (result.success) {
+        content = result.result.formattedContent;
+        compacted = result.result.compacted;
+      } else {
+        throw new Error(result.error.message);
+      }
+    } else {
+      if (options.useCompactor && processDecision.shouldCompact && codeCompactor) {
+        const fileExt = path.extname(file).substring(1);
+        if (!fileExt.match(/^[a-zA-Z0-9]+$/)) {
+          throw new Error('Invalid file extension');
+        }
+        console.log(chalk.blue(`Compacting ${path.basename(file)}...`));
+        content = codeCompactor.compact(await fs.readFile(realPath, 'utf-8'), fileExt);
+        compacted = true;
+      } else if (stats.size > 512 * 1024) {
+        content = await streamProcessor.processLargeFile(realPath, options.maxLines || 100, {
+          normalizeContent: true,
+          normalizationOptions: options.normalization,
+        });
+        compacted = true;
+      } else {
+        content = await fs.readFile(realPath, 'utf-8');
+      }
+    }
+
+    progressTracker.updateProgress(stats.size);
+
+    return {
+      filePath: file,
+      formattedContent: contentFormatter.formatContent(file, content, compacted),
+    };
+  } catch (error) {
+    errorHandler.addWarning(`Error processing ${file}: ${error.message}`, 'FileProcessor');
+    return null;
+  }
+}
+
+/**
+ * Main CLI execution function
+ * @param {string[]} argv Command line arguments
  */
 async function run(argv = process.argv.slice(2)) {
   const parsedArgv = yargs(hideBin(argv))
@@ -57,16 +278,83 @@ async function run(argv = process.argv.slice(2)) {
     })
     .option('max-files', {
       alias: 'm',
-      describe: 'Maximum number of files to include in the output',
+      describe: 'Maximum number of files to include',
       type: 'number',
       default: null,
     })
     .option('max-file-size', {
       alias: 's',
-      describe:
-        'Maximum file size in kilobytes. Files larger than this will be skipped or compacted.',
+      describe: 'Maximum file size in kilobytes',
       type: 'number',
       default: null,
+    })
+    .option('use-compactor', {
+      describe: 'Enable code compaction',
+      type: 'boolean',
+      default: false,
+    })
+    .option('compact-lines', {
+      describe: 'Maximum lines before compaction',
+      type: 'number',
+      implies: 'use-compactor',
+      default: 100,
+    })
+    .option('context-lines', {
+      describe: 'Context lines to preserve',
+      type: 'number',
+      implies: 'use-compactor',
+      default: 3,
+    })
+    .option('importance', {
+      describe: 'Importance threshold for code preservation (0-1)',
+      type: 'number',
+      implies: 'use-compactor',
+      default: 0.6,
+    })
+    .option('normalize-line-endings', {
+      describe: 'Normalize line endings across files',
+      type: 'boolean',
+      default: true,
+    })
+    .option('normalize-whitespace', {
+      describe: 'Normalize whitespace in content',
+      type: 'boolean',
+      default: true,
+    })
+    .option('remove-html', {
+      describe: 'Remove HTML tags from content',
+      type: 'boolean',
+      default: false,
+    })
+    .option('preserve-code-blocks', {
+      describe: 'Preserve formatting in code blocks',
+      type: 'boolean',
+      default: true,
+    })
+    .option('enable-workers', {
+      describe: 'Enable parallel processing using worker threads',
+      type: 'boolean',
+      default: false,
+    })
+    .option('max-workers', {
+      describe: 'Maximum number of worker threads',
+      type: 'number',
+      default: 4,
+    })
+    .option('enable-memory-monitoring', {
+      describe: 'Enable memory usage monitoring',
+      type: 'boolean',
+      default: false,
+    })
+    .option('chunk-size', {
+      describe: 'Size of chunks for streaming in bytes',
+      type: 'number',
+      default: 64 * 1024,
+    })
+    .option('progress', {
+      describe: 'Enable detailed progress reporting',
+      type: 'boolean',
+      default: false,
     })
     .option('config', {
       alias: 'c',
@@ -74,132 +362,173 @@ async function run(argv = process.argv.slice(2)) {
       type: 'string',
       default: null,
     })
+    .check((argv) => {
+      if (argv.importance !== undefined && (argv.importance < 0 || argv.importance > 1)) {
+        throw new Error('Importance threshold must be between 0 and 1');
+      }
+      if (argv.maxWorkers !== undefined && argv.maxWorkers < 1) {
+        throw new Error('Max workers must be at least 1');
+      }
+      return true;
+    })
+    .middleware((argv) => {
+      if (!argv.useCompactor && (argv.compactLines || argv.contextLines || argv.importance)) {
+        console.warn(
+          chalk.yellow(
+            'Warning: Compaction options provided but compactor is not enabled. Use --use-compactor to enable compaction.'
+          )
+        );
+      }
+      if (argv.removeHtml && !argv.normalizeWhitespace) {
+        console.warn(
+          chalk.yellow(
+            'Warning: --remove-html is more effective when used with --normalize-whitespace'
+          )
+        );
+      }
+    })
+    .epilogue(generateDetailedHelp())
     .help()
     .alias('help', 'h')
     .version()
-    .alias('version', 'v').argv;
+    .alias('version', 'v')
+    .wrap(null).argv;
 
   const errorHandler = new ErrorHandler();
 
   try {
-    // Load configuration
     const configManager = new ConfigManager(parsedArgv.config);
     const config = await configManager.loadConfig();
 
-    // Merge CLI arguments with config
     const options = {
       ...config,
       format: parsedArgv.format || config.output.format,
       outputPath: parsedArgv.output || config.output.path,
-      maxFiles: parsedArgv['max-files'] || config.limits.maxFiles,
-      maxFileSize: parsedArgv['max-file-size'] || config.limits.maxFileSize,
-      ignoreFiles: parsedArgv.ignore || config.ignore.customPatterns,
-      extensions: parsedArgv.extensions || config.extensions.include,
+      maxFiles:
+        parsedArgv['max-files'] !== undefined ? parsedArgv['max-files'] : config.limits.maxFiles,
+      maxFileSize:
+        parsedArgv['max-file-size'] !== undefined
+          ? parsedArgv['max-file-size']
+          : config.limits.maxFileSize,
+      ignoreFiles: parsedArgv.ignore.length > 0 ? parsedArgv.ignore : config.ignore.customPatterns,
+      extensions:
+        parsedArgv.extensions.length > 0 ? parsedArgv.extensions : config.extensions.include,
+      useCompactor: parsedArgv['use-compactor'],
+      compactLines: parsedArgv['compact-lines'],
+      contextLines: parsedArgv['context-lines'],
+      importanceThreshold: parsedArgv['importance'],
+      enableWorkers: parsedArgv['enable-workers'],
+      maxWorkers: parsedArgv['max-workers'],
+      enableMemoryMonitoring: parsedArgv['enable-memory-monitoring'],
+      chunkSize: parsedArgv['chunk-size'],
+      progress: parsedArgv['progress'],
+      streamingThreshold: config.streamingThreshold || 5 * 1024 * 1024, // 5MB default
+      maxHeapUsage: config.memoryLimits?.maxHeapUsage || null,
+      memoryCheckInterval: config.memoryLimits?.checkInterval || 1000,
+      normalization: {
+        normalizeLineEndings:
+          parsedArgv['normalize-line-endings'] !== undefined
+            ? parsedArgv['normalize-line-endings']
+            : (config.normalization?.normalizeLineEndings ?? true),
+        normalizeWhitespace:
+          parsedArgv['normalize-whitespace'] !== undefined
+            ? parsedArgv['normalize-whitespace']
+            : (config.normalization?.normalizeWhitespace ?? true),
+        removeHtmlTags:
+          parsedArgv['remove-html'] !== undefined
+            ? parsedArgv['remove-html']
+            : (config.normalization?.removeHtmlTags ?? false),
+        preserveCodeBlocks:
+          parsedArgv['preserve-code-blocks'] !== undefined
+            ? parsedArgv['preserve-code-blocks']
+            : (config.normalization?.preserveCodeBlocks ?? true),
+      },
     };
 
-    // Initialize components
     const rootDir = process.cwd();
-    const ignoreProcessor = new IgnoreProcessor(options.ignoreFiles);
-    const contentSizeManager = new ContentSizeManager(
-      options.maxFileSize,
-      options.maxFiles,
-      options.extensions
-    );
-    const fileScanner = new FileScanner(rootDir, ignoreProcessor, options.extensions);
-    const streamProcessor = new StreamProcessor();
+    const components = await initializeComponents(options, rootDir);
 
-    // Estimate project size
     console.log(chalk.blue('Estimating project size...'));
-    const sizeEstimate = await contentSizeManager.estimateProjectSize(rootDir, ignoreProcessor);
+    const sizeEstimate = await components.contentSizeManager.estimateProjectSize(
+      rootDir,
+      components.ignoreProcessor
+    );
 
-    // Initialize progress tracking
     const progressTracker = new ProgressTracker(sizeEstimate);
-    console.log(
-      chalk.blue(`Found ${sizeEstimate.totalFiles} files (${Math.round(sizeEstimate.totalSize)}KB)`)
-    );
+    const totalSize = Math.max(0, Math.round(parseFloat(sizeEstimate?.totalSize) || 0));
+    const totalFiles = Math.max(0, Number(sizeEstimate?.totalFiles) || 0);
 
-    // Scan files
-    let files = await fileScanner.scan();
-    console.log(chalk.blue(`Processing ${files.length} files...`));
+    console.log(chalk.blue(`Found ${totalFiles.toString()} files (${totalSize.toString()}KB)`));
 
-    // Apply file limits
-    if (options.maxFiles !== null && files.length > options.maxFiles) {
-      console.log(chalk.yellow(`Limiting output to the first ${options.maxFiles} files.`));
-      files = files.slice(0, options.maxFiles);
+    let files;
+    try {
+      files = await components.fileScanner.scan();
+      if (!Array.isArray(files)) {
+        throw new Error('File scanner did not return an array');
+      }
+    } catch (error) {
+      console.error(chalk.red(`Error during file scan: ${error.message}`));
+      files = [];
     }
 
-    if (files.length === 0) {
-      console.log(chalk.yellow('No files found to aggregate.'));
-      process.exit(0);
+    const fileCount = files.length;
+    console.log(chalk.blue(`Processing ${fileCount.toString()} files...`));
+
+    if (options.maxFiles !== null) {
+      const maxFilesLimit = Number(options.maxFiles);
+      if (Number.isFinite(maxFilesLimit) && files.length > maxFilesLimit) {
+        const safeMaxFiles = maxFilesLimit.toString();
+        console.log(chalk.yellow(`Limiting output to the first ${safeMaxFiles} files.`));
+        files = files.slice(0, maxFilesLimit);
+      } else if (!Number.isFinite(maxFilesLimit)) {
+        console.warn(chalk.yellow('Invalid maxFiles value provided, processing all files'));
+      }
     }
 
-    /**
-     * Formats the contents of multiple files based on processing decisions.
-     *
-     * @async
-     * @function
-     * @param {string[]} files - An array of file paths to be processed.
-     * @param {string} rootDir - The root directory path for resolving file paths.
-     * @param {ContentFormatter} contentFormatter - Instance responsible for formatting file contents.
-     * @param {ContentSizeManager} contentSizeManager - Manages decisions based on file size and project limits.
-     * @param {StreamProcessor} streamProcessor - Handles processing of large files efficiently.
-     * @param {ProgressTracker} progressTracker - Tracks the progress of file processing.
-     * @param {ErrorHandler} errorHandler - Handles and logs errors and warnings during processing.
-     * @returns {Promise<Array<{ filePath: string, formattedContent: string } | null>>}
-     *          A promise that resolves to an array of objects containing file paths and their formatted contents,
-     *          or null for files that were skipped or encountered errors.
-     */
+    const processContext = { rootDir, errorHandler, progressTracker };
+    let formattedContents = [];
 
-    const contentFormatter = new ContentFormatter(options.format);
-    const formattedContents = await Promise.all(
-      files.map(async (file) => {
-        const filePath = path.join(rootDir, file);
-        let content;
-        let compacted = false;
-
-        try {
-          const stats = await fs.stat(filePath);
-          // const fileSizeKB = stats.size / 1024; // Removed unused variable
-          const processDecision = contentSizeManager.shouldProcessFile(file, stats.size);
-
-          if (!processDecision.shouldProcess) {
-            errorHandler.addWarning(`Skipping ${file}: ${processDecision.reason}`, 'FileProcessor');
-            return null;
-          }
-
-          if (processDecision.shouldCompact) {
-            content = await streamProcessor.processLargeFile(filePath);
-            compacted = true;
-          } else {
-            content = await fs.readFile(filePath, 'utf-8');
-          }
-
-          progressTracker.updateProgress(stats.size);
-          return {
-            filePath: file,
-            formattedContent: contentFormatter.formatContent(file, content, compacted),
-          };
-        } catch (error) {
-          errorHandler.addWarning(`Error processing ${file}: ${error.message}`, 'FileProcessor');
-          return null;
-        }
-      })
-    );
-
-    // Filter out null results from failed processing
-    const validContents = formattedContents.filter((content) => content !== null);
-
-    const outputPath = options.outputPath
-      ? path.isAbsolute(options.outputPath)
-        ? options.outputPath
-        : path.join(rootDir, options.outputPath)
-      : path.join(
-          rootDir,
-          options.format === 'markdown' ? 'llm-pack-output.md' : 'llm-pack-output.json'
+    if (options.enableWorkers && components.streamProcessor) {
+      const { results, errors } = await components.streamProcessor.processBatch(files, {
+        ...options,
+        normalizeContent: true,
+        normalizationOptions: options.normalization,
+      });
+      formattedContents = results;
+      errors.forEach((err) => {
+        errorHandler.addWarning(
+          `Error processing ${err.file}: ${err.error.message}`,
+          'StreamProcessor'
         );
+      });
+    } else {
+      formattedContents = await Promise.all(
+        files.map((file) => processFile(file, components, options, processContext))
+      );
+      formattedContents = formattedContents.filter((content) => content !== null);
+    }
 
-    const outputAggregator = new OutputAggregator(options.format, outputPath);
-    const aggregatedContent = outputAggregator.aggregateContents(validContents);
+    let outputPath;
+    if (options.outputPath) {
+      const normalizedPath = path.normalize(options.outputPath).replace(/^(\.\.(\/|\\|$))+/, '');
+      outputPath = path.isAbsolute(normalizedPath)
+        ? normalizedPath
+        : path.join(rootDir, normalizedPath);
+      if (!outputPath.startsWith(path.resolve(rootDir))) {
+        throw new Error('Invalid output path: Path traversal detected');
+      }
+    } else {
+      outputPath = path.join(
+        rootDir,
+        options.format === 'markdown' ? 'llm-pack-output.md' : 'llm-pack-output.json'
+      );
+    }
+
+    const outputAggregator = new OutputAggregator(options.format, outputPath, {
+      ...options.normalization,
+    });
+
+    const aggregatedContent = outputAggregator.aggregateContents(formattedContents);
     await outputAggregator.saveOutput(aggregatedContent);
 
     progressTracker.complete();
@@ -209,6 +538,12 @@ async function run(argv = process.argv.slice(2)) {
         chalk.yellow('\nWarnings occurred during processing. Check the output for details.')
       );
     }
+
+    // Cleanup resources
+    if (components.streamProcessor) {
+      await components.streamProcessor.cleanup();
+    }
+    await outputAggregator.cleanup();
   } catch (error) {
     errorHandler.handleError(error, 'Main', true);
   }
