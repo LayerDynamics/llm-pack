@@ -77,8 +77,8 @@ jobs:
         run: npm audit --audit-level=high
 
       - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@master  # Updated to language-specific action
-        continue-on-error: true  # Ensures SARIF upload runs even if vulnerabilities are found
+        uses: snyk/actions/node@master # Updated to language-specific action
+        continue-on-error: true # Ensures SARIF upload runs even if vulnerabilities are found
         with:
           args: --sarif-file-output=snyk.sarif
         env:
@@ -94,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     permissions:
-      contents: write
+      contents: read
       pages: write
       id-token: write # Required for GitHub Pages deployment
 
@@ -118,25 +118,26 @@ jobs:
         run: npm run docs
 
       - name: Upload Documentation Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: documentation
           path: ./docs/build
 
+  deploy-docs:
+    name: Deploy Documentation to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: build-docs
+    permissions:
+      pages: write
+      id-token: write
+    steps:
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/build
-          publish_branch: gh-pages
-          force_orphan: true
-          enable_jekyll: false
+        uses: actions/deploy-pages@v3
 
   publish:
     name: Release and Publish to NPM
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [test, security, build-docs] # Ensure CI jobs pass before publishing
+    needs: [test, security, build-docs]
     permissions:
       contents: write
       packages: write
@@ -168,8 +169,9 @@ jobs:
         id: update_version
         run: |
           TAG=${GITHUB_REF#refs/tags/}
-          echo "Updating package.json version to $TAG"
-          npm version "$TAG" --no-git-tag-version
+          VERSION=${TAG#v}
+          echo "Updating package.json version to $VERSION"
+          npm version "$VERSION" --no-git-tag-version
 
       - name: Publish to NPM
         run: npm publish
@@ -193,6 +195,9 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: javascript
+
+      - name: Autobuild
+        run: npm ci
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
