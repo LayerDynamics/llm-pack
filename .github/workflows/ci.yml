@@ -77,8 +77,8 @@ jobs:
         run: npm audit --audit-level=high
 
       - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@master # Updated to language-specific action
-        continue-on-error: true # Ensures SARIF upload runs even if vulnerabilities are found
+        uses: snyk/actions/node@master
+        continue-on-error: true
         with:
           args: --sarif-file-output=snyk.sarif
         env:
@@ -117,6 +117,9 @@ jobs:
       - name: Generate Documentation
         run: npm run docs
 
+      - name: List Documentation Directory
+        run: ls -la ./docs/build
+
       - name: Upload Documentation Artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -137,7 +140,7 @@ jobs:
     name: Release and Publish to NPM
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
-    needs: [test, security, build-docs]
+    needs: [test, security, build-docs] # Ensure CI jobs pass before publishing
     permissions:
       contents: write
       packages: write

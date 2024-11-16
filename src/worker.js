@@ -1,3 +1,4 @@
+// src/worker.js
 const { parentPort, workerData } = require('worker_threads');
 const path = require('path');
 const fs = require('fs').promises;
@@ -7,12 +8,21 @@ const CodeCompactor = require('./codeCompactor');
 const MemoryManager = require('./memoryManager');
 
 /**
- * Worker class for handling file processing in parallel
+ * Represents a worker that processes files.
  */
 class FileProcessingWorker {
   /**
-   * Creates a new FileProcessingWorker instance
-   * @param {Object} options Worker configuration options
+   * Creates an instance of FileProcessingWorker.
+   * @param {Object} [options={}] - Configuration options.
+   * @param {number} [options.maxHeapUsage] - Maximum heap usage in bytes.
+   * @param {number} [options.maxBufferSize] - Maximum buffer size in bytes.
+   * @param {string} [options.format='markdown'] - Content format.
+   * @param {string} [options.theme] - Theme for content formatting.
+   * @param {boolean} [options.highlightSyntax] - Whether to highlight syntax.
+   * @param {boolean} [options.useCompactor] - Whether to use the code compactor.
+   * @param {number} [options.compactLines] - Maximum lines after compaction.
+   * @param {number} [options.contextLines] - Number of context lines to retain.
+   * @param {number} [options.importanceThreshold] - Threshold for compaction importance.
    */
   constructor(options = {}) {
     this.memoryManager = new MemoryManager({
@@ -44,8 +54,7 @@ class FileProcessingWorker {
   }
 
   /**
-   * Sets up memory monitoring and event handlers
-   * @private
+   * Sets up memory monitoring event listeners.
    */
   setupMemoryMonitoring() {
     this.memoryManager.on('memory-warning', (stats) => {
@@ -66,9 +75,12 @@ class FileProcessingWorker {
   }
 
   /**
-   * Processes a single file
-   * @param {Object} task File processing task configuration
-   * @returns {Promise<Object>} Processing result
+   * Processes a file task.
+   * @param {Object} task - The file processing task.
+   * @param {string} task.filePath - Path to the file to process.
+   * @param {string} task.rootDir - Root directory for validation.
+   * @param {Object} task.options - Additional processing options.
+   * @returns {Promise<Object>} The result of the file processing.
    */
   async processFile(task) {
     const { filePath, rootDir, options } = task;
@@ -100,11 +112,10 @@ class FileProcessingWorker {
   }
 
   /**
-   * Validates input parameters
-   * @param {string} filePath File path to process
-   * @param {string} rootDir Root directory
-   * @returns {boolean} Whether input is valid
-   * @private
+   * Validates the input parameters.
+   * @param {string} filePath - Path to the file.
+   * @param {string} rootDir - Root directory.
+   * @returns {boolean} Whether the input is valid.
    */
   validateInput(filePath, rootDir) {
     if (!filePath || typeof filePath !== 'string') return false;
@@ -123,12 +134,11 @@ class FileProcessingWorker {
   }
 
   /**
-   * Processes a file with known stats
-   * @param {string} filePath File path
-   * @param {fs.Stats} stats File stats
-   * @param {Object} options Processing options
-   * @returns {Promise<Object>} Processing result
-   * @private
+   * Processes a file with its statistics.
+   * @param {string} filePath - Path to the file.
+   * @param {fs.Stats} stats - File statistics.
+   * @param {Object} options - Processing options.
+   * @returns {Promise<Object>} The processed file result.
    */
   async processFileWithStats(filePath, stats, options) {
     let content;
@@ -180,16 +190,19 @@ class FileProcessingWorker {
   }
 
   /**
-   * Cleans up resources used by the worker
+   * Cleans up resources used by the worker.
    */
   cleanup() {
     this.memoryManager.stopMonitoring();
   }
 }
 
-// Set up message handling
+// Instantiate the worker with provided data
 const worker = new FileProcessingWorker(workerData);
 
+/**
+ * Handles incoming messages from the parent thread.
+ */
 parentPort.on('message', async (task) => {
   try {
     if (task.type === 'process-file') {
@@ -213,7 +226,10 @@ parentPort.on('message', async (task) => {
   }
 });
 
-// Handle uncaught errors
+/**
+ * Handles uncaught exceptions in the worker process.
+ * @param {Error} error - The uncaught exception.
+ */
 process.on('uncaughtException', (error) => {
   parentPort.postMessage({
     type: 'uncaught-error',
@@ -224,7 +240,10 @@ process.on('uncaughtException', (error) => {
   });
 });
 
-// Handle unhandled rejections
+/**
+ * Handles unhandled promise rejections in the worker process.
+ * @param {*} reason - The reason for the rejection.
+ */
 process.on('unhandledRejection', (reason) => {
   parentPort.postMessage({
     type: 'unhandled-rejection',

@@ -7,11 +7,16 @@ const MemoryManager = require('./memoryManager');
 const ContentNormalizer = require('./contentNormalizer');
 
 /**
- * A transform stream that restricts output size and/or number of lines,
- * and adds a truncation marker within the specified limits.
- * @extends Transform
+ * A Transform stream that restricts data based on size and line count.
  */
 class SizeAndLineRestrictedStream extends Transform {
+  /**
+   * Creates an instance of SizeAndLineRestrictedStream.
+   * @param {Object} [options={}] - Configuration options.
+   * @param {number} [options.maxSize=Infinity] - Maximum size in bytes.
+   * @param {number} [options.maxLines=Infinity] - Maximum number of lines.
+   * @param {string} [options.truncationMarker='...'] - Marker to indicate truncation.
+   */
   constructor({ maxSize = Infinity, maxLines = Infinity, truncationMarker = '...' } = {}) {
     super({ decodeStrings: false });
     this.maxSize = maxSize;
@@ -23,6 +28,12 @@ class SizeAndLineRestrictedStream extends Transform {
     this.truncationMarker = truncationMarker;
   }
 
+  /**
+   * Transforms incoming chunks, enforcing size and line restrictions.
+   * @param {Buffer|string} chunk - The chunk to process.
+   * @param {string} encoding - Encoding type.
+   * @param {Function} callback - Callback to signal completion.
+   */
   _transform(chunk, encoding, callback) {
     try {
       if (this.truncated) {
@@ -75,6 +86,10 @@ class SizeAndLineRestrictedStream extends Transform {
     }
   }
 
+  /**
+   * Flushes any remaining data when the stream ends.
+   * @param {Function} callback - Callback to signal completion.
+   */
   _flush(callback) {
     if (this.buffer.length > 0 && !this.truncated) {
       const remainingSize = Buffer.byteLength(this.buffer, 'utf8');
@@ -101,11 +116,24 @@ class SizeAndLineRestrictedStream extends Transform {
     callback();
   }
 }
+
 /**
- * Processes and streams file content with size and memory constraints.
- * @extends EventEmitter
+ * Processes streams with size and line restrictions, normalization, and optional memory monitoring.
  */
 class StreamProcessor extends EventEmitter {
+  /**
+   * Creates an instance of StreamProcessor.
+   * @param {Object} [options={}] - Configuration options.
+   * @param {number|null} [options.maxBufferSize=null] - Maximum buffer size in bytes.
+   * @param {number|null} [options.chunkSize=null] - Size of each chunk in bytes.
+   * @param {boolean} [options.enableMemoryMonitoring=false] - Enable memory usage monitoring.
+   * @param {boolean} [options.enableProgressReporting=false] - Enable progress reporting.
+   * @param {boolean} [options.normalizeLineEndings=true] - Normalize line endings.
+   * @param {boolean} [options.normalizeWhitespace=true] - Normalize whitespace.
+   * @param {boolean} [options.removeHtmlTags=false] - Remove HTML tags during normalization.
+   * @param {number} [options.maxHeapUsage] - Maximum heap usage for memory monitoring.
+   * @param {number} [options.memoryCheckInterval] - Interval for memory checks in milliseconds.
+   */
   constructor(options = {}) {
     super();
     this.maxBufferSize = options.maxBufferSize || null;
@@ -128,6 +156,10 @@ class StreamProcessor extends EventEmitter {
     }
   }
 
+  /**
+   * Determines the chunk size for reading streams.
+   * @returns {number} The chunk size in bytes.
+   */
   getChunkSize() {
     if (this.chunkSize !== null) return this.chunkSize;
     const availableMemory = process.memoryUsage().heapTotal;
@@ -207,15 +239,12 @@ class StreamProcessor extends EventEmitter {
   }
 
   /**
-   * Processes a large file, optionally truncating content based on maxBufferSize and maxLines,
-   * and normalizing the content.
-   * @async
-   * @param {string} filePath - The path to the file to be processed.
-   * @param {number|null} [maxLines=null] - Maximum number of lines to process.
-   * @param {Object} [options={}] - Processing options.
-   * @param {boolean} [options.normalizeContent=true] - Whether to normalize the content.
-   * @returns {Promise<string>} The processed content, potentially truncated if exceeding maxBufferSize or maxLines.
-   * @throws {Error} If file operations fail.
+   * Processes a large file with optional line limits and normalization.
+   * @param {string} filePath - Path to the file.
+   * @param {number|null} maxLines - Maximum lines to process.
+   * @param {Object} [options={}] - Additional processing options.
+   * @param {boolean} [options.normalizeContent=true] - Whether to normalize content.
+   * @returns {Promise<string>} The processed content.
    */
   async processLargeFile(filePath, maxLines = null, options = {}) {
     const stats = await fs.promises.stat(filePath);
@@ -279,12 +308,12 @@ class StreamProcessor extends EventEmitter {
 
     return processedContent;
   }
+
   /**
-   * Processes file with a line limit.
-   * @private
+   * Processes a file with a line limit.
    * @param {string} filePath - Path to the file.
-   * @param {number} maxLines - Maximum lines to read.
-   * @returns {Promise<string>} Processed content.
+   * @param {number} maxLines - Maximum number of lines to process.
+   * @returns {Promise<string>} The processed content.
    */
   async processWithLineLimit(filePath, maxLines) {
     return new Promise((resolve, reject) => {
@@ -328,16 +357,19 @@ class StreamProcessor extends EventEmitter {
   }
 
   /**
-   * Updates normalization options.
-   * @param {Object} options - New normalization options.
+   * Sets normalization options.
+   * @param {Object} options - Normalization options.
+   * @param {boolean} [options.normalizeLineEndings=true] - Normalize line endings.
+   * @param {boolean} [options.normalizeWhitespace=true] - Normalize whitespace.
+   * @param {boolean} [options.removeHtmlTags=false] - Remove HTML tags.
    */
   setNormalizationOptions(options) {
     this.normalizer = new ContentNormalizer(options);
   }
 
   /**
-   * Cleans up resources.
-   * @returns {Promise<void>}
+   * Cleans up resources used by the StreamProcessor.
+   * @returns {Promise<void>} A promise that resolves when cleanup is complete.
    */
   async cleanup() {
     if (this.memoryManager) {
