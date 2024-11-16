@@ -1,7 +1,5 @@
-// main.js
 const path = require('path');
 const yargs = require('yargs');
-const { hideBin } = require('yargs/helpers');
 const chalk = require('chalk');
 const fs = require('fs').promises;
 const ConfigManager = require('../config/configManager');
@@ -16,74 +14,136 @@ const ErrorHandler = require('./errorHandler');
 const CodeCompactor = require('./codeCompactor');
 
 /**
- * Generates the detailed help text for the CLI
- * @returns {string} Formatted help text
+ * Generates a full ASCII block art banner
+ * @returns {string} Styled banner
  */
+function generateBanner() {
+  const chalkInstance = new chalk.Instance({ level: 3 });
+  return [
+    '',
+    chalkInstance.cyan('██╗     ██╗     ███╗   ███╗            ██████╗  █████╗  ██████╗██╗  ██╗'),
+    chalkInstance.cyan('██║     ██║     ████╗ ████║            ██╔══██╗██╔══██╗██╔════╝██║ ██╔╝'),
+    chalkInstance.cyan('██║     ██║     ██╔████╔██║            ██████╔╝███████║██║     █████╔╝ '),
+    chalkInstance.cyan('██║     ██║     ██║╚██╔╝██║            ██╔═══╝ ██╔══██║██║     ██╔═██╗ '),
+    chalkInstance.cyan('███████╗███████╗██║ ╚═╝ ██║            ██║     ██║  ██║╚██████╗██║  ██╗'),
+    chalkInstance.cyan('╚══════╝╚══════╝╚═╝     ╚═╝            ╚═╝     ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝'),
+    '',
+  ].join('\n');
+}
+
 function generateDetailedHelp() {
-  return `
-LLM-Pack: Project Content Aggregator for Large Language Models
+  const chalkInstance = new chalk.Instance({ level: 3 });
 
-Description:
-  A command-line tool for aggregating project content and optimizing it for Large Language Models (LLMs).
-  Processes directories recursively, respects ignore patterns, and generates optimized, structured output.
+  const sections = [
+    generateBanner(),
+    chalkInstance.white('              Project Content Aggregator for Large Language Models\n'),
 
-Usage:
-  llm-pack [options]
+    chalkInstance.cyan.bold('\nDescription:'),
+    chalkInstance.white(
+      '  A command-line tool that aggregates project files into a single, structured document optimized'
+    ),
+    chalkInstance.white(
+      '  for Large Language Models (LLMs). Supports intelligent filtering, custom ignores, and multiple'
+    ),
+    chalkInstance.white('  output formats.\n'),
 
-Basic Options:
-  -f, --format           Output format (markdown or json)                      [default: "markdown"]
-  -o, --output          Output file path                                      [default: "llm-pack-output.{md|json}"]
-  -i, --ignore          Custom ignore files                                   [array]
-  -e, --extensions      Additional file extensions to include                  [array]
-  -h, --help           Show help                                             [boolean]
-  -v, --version        Show version number                                   [boolean]
+    chalkInstance.cyan.bold('Basic Options:'),
+    chalkInstance.white(
+      '  -f, --format        Output format (markdown or json)          [default: "markdown"]'
+    ),
+    chalkInstance.white(
+      '  -o, --output        Output file path                         [default: "llm-pack-output.{md|json}"]'
+    ),
+    chalkInstance.white('  -i, --ignore        Custom ignore files                      [array]'),
+    chalkInstance.white('  -e, --extensions    Additional file extensions to include     [array]'),
+    chalkInstance.white('  -c, --config        Path to configuration file               [string]'),
+    chalkInstance.white('  -h, --help         Show help                                [boolean]'),
+    chalkInstance.white(
+      '  -v, --version      Show version number                      [boolean]\n'
+    ),
 
-Content Processing Options:
-  --max-files          Maximum number of files to include                    [number]
-  --max-file-size      Maximum file size in kilobytes                       [number]
-  --use-compactor      Enable code compaction                               [boolean] [default: false]
-  --compact-lines      Maximum lines before compaction                       [number] [default: 100]
-  --context-lines      Context lines to preserve                            [number] [default: 3]
-  --importance         Importance threshold for code preservation (0-1)      [number] [default: 0.6]
+    chalkInstance.cyan.bold('Content Processing:'),
+    chalkInstance.white('  --max-files         Maximum number of files to include       [number]'),
+    chalkInstance.white('  --max-file-size     Maximum file size in kilobytes          [number]'),
+    chalkInstance.white(
+      '  --use-compactor     Enable code compaction                   [boolean] [default: false]'
+    ),
+    chalkInstance.white(
+      '  --compact-lines     Maximum lines before compaction          [number] [default: 100]'
+    ),
+    chalkInstance.white(
+      '  --context-lines     Context lines to preserve                [number] [default: 3]'
+    ),
+    chalkInstance.white(
+      '  --importance        Importance threshold (0-1)               [number] [default: 0.6]\n'
+    ),
 
-Normalization Options:
-  --normalize-line-endings   Normalize line endings across files             [boolean] [default: true]
-  --normalize-whitespace    Normalize whitespace in content                  [boolean] [default: true]
-  --remove-html            Remove HTML tags from content                     [boolean] [default: false]
-  --preserve-code-blocks   Preserve formatting in code blocks                [boolean] [default: true]
+    chalkInstance.cyan.bold('Content Normalization:'),
+    chalkInstance.white(
+      '  --normalize-line-endings    Normalize line endings           [boolean] [default: true]'
+    ),
+    chalkInstance.white(
+      '  --normalize-whitespace     Normalize whitespace              [boolean] [default: true]'
+    ),
+    chalkInstance.white(
+      '  --remove-html             Remove HTML tags                   [boolean] [default: false]'
+    ),
+    chalkInstance.white(
+      '  --preserve-code-blocks    Preserve code block formatting     [boolean] [default: true]\n'
+    ),
 
-Performance Options:
-  --enable-workers             Enable parallel processing                    [boolean] [default: false]
-  --max-workers               Maximum number of worker threads              [number] [default: 4]
-  --enable-memory-monitoring  Enable memory usage monitoring                [boolean] [default: false]
-  --chunk-size               Size of chunks for streaming in bytes          [number] [default: 65536]
-  --progress                 Enable detailed progress reporting             [boolean] [default: false]
+    chalkInstance.cyan.bold('Performance Options:'),
+    chalkInstance.white(
+      '  --enable-workers              Enable parallel processing     [boolean] [default: false]'
+    ),
+    chalkInstance.white(
+      '  --max-workers                Maximum worker threads          [number] [default: 4]'
+    ),
+    chalkInstance.white(
+      '  --enable-memory-monitoring   Monitor memory usage            [boolean] [default: false]'
+    ),
+    chalkInstance.white(
+      '  --chunk-size                Streaming chunk size (bytes)     [number] [default: 65536]'
+    ),
+    chalkInstance.white(
+      '  --progress                  Show detailed progress           [boolean] [default: false]\n'
+    ),
 
-Examples:
-  # Basic usage with default settings
-  llm-pack
+    chalkInstance.cyan.bold('Examples:'),
+    chalkInstance.yellow('  # Basic usage with default settings'),
+    chalkInstance.white('  $ llm-pack\n'),
+    chalkInstance.yellow('  # Generate JSON output with custom file size limit'),
+    chalkInstance.white('  $ llm-pack --format json --max-file-size 500\n'),
+    chalkInstance.yellow('  # Use parallel processing with 4 workers'),
+    chalkInstance.white('  $ llm-pack --enable-workers --max-workers 4\n'),
+    chalkInstance.yellow('  # Enable code compaction with custom settings'),
+    chalkInstance.white('  $ llm-pack --use-compactor --compact-lines 50 --context-lines 2\n'),
+    chalkInstance.yellow('  # Custom output with specific normalizations'),
+    chalkInstance.white('  $ llm-pack -o ./docs/output.md --normalize-whitespace --remove-html\n'),
 
-  # Generate JSON output with custom file size limit
-  llm-pack --format json --max-file-size 500
+    chalkInstance.cyan.bold('Default Behavior:'),
+    chalkInstance.white('  - Excludes common directories (node_modules, dist, coverage, etc.)'),
+    chalkInstance.white(
+      '  - Supports common file extensions (.js, .jsx, .ts, .tsx, .md, .json, etc.)'
+    ),
+    chalkInstance.white(
+      '  - Respects .gitignore, .npmignore, .dockerignore, and other ignore files'
+    ),
+    chalkInstance.white('  - Provides syntax highlighting for code blocks in markdown output'),
+    chalkInstance.white('  - Automatically generates table of contents'),
+    chalkInstance.white('  - Preserves code structure during compaction\n'),
 
-  # Use parallel processing with normalization
-  llm-pack --enable-workers --max-workers 4 --normalize-whitespace
+    chalkInstance.cyan.bold('Additional Information:'),
+    chalkInstance.white('  - Memory monitoring helps prevent out-of-memory errors'),
+    chalkInstance.white('  - Worker threads improve performance for large projects'),
+    chalkInstance.white('  - Code compaction preserves important code while reducing size'),
+    chalkInstance.white('  - Progress reporting provides real-time status updates\n'),
 
-  # Enable code compaction with custom settings
-  llm-pack --use-compactor --compact-lines 50 --context-lines 2
+    chalkInstance.white('For more detailed documentation, visit: ') +
+      chalkInstance.blue('https://github.com/LayerDynamics/llm-pack\n'),
+  ];
 
-  # Custom output with specific normalizations
-  llm-pack --output ./docs/output.md --normalize-line-endings --remove-html
-
-Notes:
-  - File size limits are in kilobytes
-  - Worker threads can significantly improve performance for large projects
-  - Normalization options help ensure consistent output
-  - Code compaction preserves important code while reducing size
-  - Progress reporting provides real-time processing information
-
-For more information visit: https://github.com/LayerDynamics/llm-pack
-`;
+  return sections.join('\n');
 }
 
 /**
@@ -249,7 +309,8 @@ async function processFile(file, components, options, context) {
  * @param {string[]} argv Command line arguments
  */
 async function run(argv = process.argv.slice(2)) {
-  const parsedArgv = yargs(hideBin(argv))
+  // Create a new yargs instance with all options configured
+  const yargsInstance = yargs(argv)
     .scriptName('llm-pack')
     .usage('$0 [options]')
     .option('format', {
@@ -387,16 +448,39 @@ async function run(argv = process.argv.slice(2)) {
         );
       }
     })
-    .epilogue(generateDetailedHelp())
-    .help()
-    .alias('help', 'h')
-    .version()
-    .alias('version', 'v')
-    .wrap(null).argv;
-
-  const errorHandler = new ErrorHandler();
+    .showHelpOnFail(false) // Disable default help on fail
+    .strict()
+    .help(false) // Disable default help
+    .version(false) // Disable default version
+    .wrap(null)
+    .usage(generateDetailedHelp());
 
   try {
+    // Handle help and version first
+    if (argv.includes('--help') || argv.includes('-h')) {
+      console.log(generateDetailedHelp());
+      process.exit(0);
+    }
+
+    if (argv.includes('--version') || argv.includes('-v')) {
+      const packageJson = require('../package.json');
+      console.log(chalk.bold(`v${packageJson.version}`));
+      process.exit(0);
+    }
+
+    // Parse arguments
+    const parsedArgv = yargsInstance.parse(argv);
+
+    // Show help on error with color
+    if (parsedArgv.errors && parsedArgv.errors.length > 0) {
+      console.error(chalk.red('Error:', parsedArgv.errors.join('\n')));
+      console.log('\n' + generateDetailedHelp());
+      process.exit(1);
+    }
+
+    const errorHandler = new ErrorHandler();
+
+    // Load config and merge with CLI arguments
     const configManager = new ConfigManager(parsedArgv.config);
     const config = await configManager.loadConfig();
 
@@ -545,7 +629,11 @@ async function run(argv = process.argv.slice(2)) {
     }
     await outputAggregator.cleanup();
   } catch (error) {
-    errorHandler.handleError(error, 'Main', true);
+    // If it's a yargs error (e.g., help or version display), let it handle naturally
+    if (!error.name || error.name !== 'YError') {
+      console.error(chalk.red(error.stack || error.message));
+      process.exit(1);
+    }
   }
 }
 
