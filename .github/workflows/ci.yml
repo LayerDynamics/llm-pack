@@ -1,3 +1,41 @@
+# This GitHub Actions workflow is designed to automate various tasks including continuous integration (CI),
+# documentation generation and deployment, release publishing, and security scanning using CodeQL.
+# The workflow is triggered on push events to the main branch, tag creation, and pull requests to the main branch.
+# It can also be manually triggered using the workflow_dispatch event.
+
+# Permissions:
+# - Read access to contents
+# - Write access to packages, pages, id-token, and security-events
+
+# Concurrency:
+# - Ensures that only one instance of the workflow runs at a time for the 'pages' group
+
+# Jobs:
+# 1. test:
+#    - Runs tests on multiple Node.js versions (16.x, 18.x, 20.x)
+#    - Steps include checking out the repository, setting up Node.js, installing dependencies, running lint, tests, and test coverage
+
+# 2. security:
+#    - Performs security scanning
+#    - Steps include checking out the repository, setting up Node.js, installing dependencies, running npm audit, and Snyk vulnerability check
+
+# 3. build-docs:
+#    - Generates and deploys documentation
+#    - Steps include checking out the repository, setting up Node.js, installing dependencies, generating documentation, and uploading documentation artifact
+
+# 4. deploy-docs:
+#    - Deploys the generated documentation to GitHub Pages
+#    - Depends on the build-docs job
+
+# 5. publish:
+#    - Releases and publishes the package to NPM
+#    - Triggered by tag creation
+#    - Depends on test, security, and build-docs jobs
+#    - Steps include checking out the repository, setting up Node.js, installing dependencies, running tests and security audit, updating version in package.json, and publishing to NPM
+
+# 6. codeql:
+#    - Performs CodeQL analysis for security vulnerabilities
+#    - Steps include checking out the repository, initializing CodeQL, autobuild, and performing CodeQL analysis
 name: CI, Documentation, Release, and CodeQL Pipeline
 
 on:
