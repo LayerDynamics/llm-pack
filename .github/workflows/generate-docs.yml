@@ -15,31 +15,43 @@ on:
   workflow_dispatch:  # Allows manual triggering
 
 permissions:
-  contents: write
+  contents: read
   pages: write
-  id-token: write
+  id-token: write  # Required for GitHub Pages deployment
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # 1. Check out the repository
       - name: Check out the repository
         uses: actions/checkout@v4
 
+      # 2. Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20.x
-          cache: npm
+          node-version: '20.x'
+          cache: 'npm'
 
+      # 3. Install dependencies
       - name: Install dependencies
         run: |
           npm ci
 
+      # 4. Generate Documentation
       - name: Generate Documentation
         run: |
           npx jsdoc -c jsdoc.json
 
+      # 5. Upload Documentation as Artifact
+      - name: Upload Documentation Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: documentation
+          path: ./docs/build
+
+      # 6. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
