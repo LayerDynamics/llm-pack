@@ -1,0 +1,255 @@
+# This GitHub Actions workflow is designed to automate various tasks including continuous integration (CI),
+# documentation generation and deployment, release publishing, and security scanning using CodeQL.
+# The workflow is triggered on push events to the main branch, tag creation, and pull requests to the main branch.
+# It can also be manually triggered using the workflow_dispatch event.
+
+# Permissions:
+# - Read access to contents
+# - Write access to packages, pages, id-token, and security-events
+
+# Concurrency:
+# - Ensures that only one instance of the workflow runs at a time for the 'pages' group
+
+# Jobs:
+# 1. test:
+#    - Runs tests on multiple Node.js versions (16.x, 18.x, 20.x)
+#    - Steps include checking out the repository, setting up Node.js, installing dependencies, running lint, tests, and test coverage
+
+# 2. security:
+#    - Performs security scanning
+#    - Steps include checking out the repository, setting up Node.js, installing dependencies, running npm audit, and Snyk vulnerability check
+
+# 3. build-docs:
+#    - Generates and deploys documentation
+#    - Steps include checking out the repository, setting up Node.js, installing dependencies, generating documentation, and uploading documentation artifact
+
+# 4. deploy-docs:
+#    - Deploys the generated documentation to GitHub Pages
+#    - Depends on the build-docs job
+
+# 5. publish:
+#    - Releases and publishes the package to NPM
+#    - Triggered by tag creation
+#    - Depends on test, security, and build-docs jobs
+#    - Steps include checking out the repository, setting up Node.js, installing dependencies, running tests and security audit, updating version in package.json, and publishing to NPM
+
+# 6. codeql:
+#    - Performs CodeQL analysis for security vulnerabilities
+#    - Steps include checking out the repository, initializing CodeQL, autobuild, and performing CodeQL analysis
+name: CI, Documentation, Release, and CodeQL Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - v*.*.*
+    paths:
+      - src/**
+      - docs/**
+      - '*.js'
+      - '*.json'
+      - README.md
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  pages: write
+  id-token: write
+  security-events: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x, 20.x]
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Lint
+        run: npm run lint
+
+      - name: Run Tests
+        run: npm test
+
+      - name: Run Test Coverage
+        run: npm run test:coverage
+
+  security:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        with:
+          args: --sarif-file-output=snyk.sarif
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Upload Snyk SARIF to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: snyk.sarif
+
+  build-docs:
+    name: Generate and Deploy Documentation
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm install -g jsdoc
+          npm install clean-jsdoc-theme
+
+      - name: Generate Documentation
+        run: npm run docs
+
+      - name: List Documentation Directory
+        run: ls -la ./docs/build
+
+      - name: Upload Documentation Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs/build
+
+  deploy-docs:
+    name: Deploy Documentation to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: build-docs
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+
+    steps:
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v3
+
+  publish:
+    name: Release and Publish to NPM
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [test, security, build-docs]
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: |
+          npm run lint
+          npm test
+          npm run test:coverage
+
+      - name: Security audit
+        run: npm audit --audit-level=high
+
+      - name: Update version in package.json
+        id: update_version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG#v}
+          echo "Updating package.json version to $VERSION"
+          npm version "$VERSION" --no-git-tag-version
+
+      - name: Publish to NPM
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'schedule'
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+
+      - name: Autobuild
+        run: npm ci
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
