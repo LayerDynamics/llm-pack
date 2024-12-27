@@ -1,5 +1,12 @@
 const { createLogger, format, transports } = require('winston');
 const path = require('path');
+const fs = require('fs');
+
+const logDir = path.resolve('llm-pack', 'logs');
+
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
+}
 
 const winstonLogger = createLogger({
   level: 'info',

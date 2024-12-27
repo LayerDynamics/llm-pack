@@ -21,7 +21,10 @@ class PerformanceOptimizer {
         continue;
       }
 
-      const p = Promise.resolve().then(() => task());
+      const p = Promise.resolve().then(() => task()).catch(error => {
+        Logger.error(`Task failed: ${error.message}`);
+        return undefined;
+      });
       results.push(p);
 
       if (this.concurrencyLimit <= tasks.length) {

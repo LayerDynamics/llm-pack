@@ -24,16 +24,27 @@ class FileScanner {
       const entries = await fs.readdir(dir, { withFileTypes: true });
       const tasks = entries.map(entry => async () => {
         const fullPath = path.join(dir, entry.name);
+
         if (this.ignoreProcessor.isIgnored(fullPath)) {
           Logger.debug(`Ignored: ${fullPath}`);
           return;
         }
 
         if (entry.isDirectory()) {
-          await this._scanDirectory(fullPath, files);
+          try {
+            await fs.access(fullPath);
+            await this._scanDirectory(fullPath, files);
+          } catch (error) {
+            Logger.error(`Error scanning directory ${fullPath}: ${error.message}`);
+          }
         } else if (entry.isFile()) {
-          files.push(fullPath);
-          Logger.debug(`Found file: ${fullPath}`);
+          try {
+            await fs.access(fullPath);
+            files.push(fullPath);
+            Logger.debug(`Found file: ${fullPath}`);
+          } catch (error) {
+            Logger.error(`Error scanning directory ${dir}: ${error.message}`);
+          }
         }
       });
 

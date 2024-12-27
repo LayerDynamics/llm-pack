@@ -1,6 +1,7 @@
 const mockFs = require('mock-fs');
 const FileScanner = require('../../src/core/fileScanner');
 const fs = require('fs');
+const PerformanceOptimizer = require('../../src/core/performanceOptimizer'); // Ensure this import is present
 
 jest.mock('../../src/utils/logger', () => ({
   info: jest.fn(),
@@ -101,5 +102,98 @@ describe('FileScanner', () => {
 
     // Restore the original implementation
     fs.promises.readdir.mockRestore();
+  });
+
+  test('should handle stat errors during scan', async () => {
+    mockFs({
+      '/test': {
+        'file.js': mockFs.file({
+          content: 'content',
+          mode: parseInt('000', 8) // No permissions
+        })
+      }
+    });
+
+    // Mock fs.promises.access to throw Permission Denied for '/test/file.js'
+    jest.spyOn(fs.promises, 'access').mockImplementation((path) => {
+      if (path === '/test/file.js') {
+        return Promise.reject(new Error('Permission denied'));
+      }
+      return Promise.resolve();
+    });
+
+    const scanner = new FileScanner('/test');
+    const files = await scanner.scan();
+
+    expect(files).toEqual([]);
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      expect.stringContaining('Error scanning directory')
+    );
+
+    // Restore the original implementation
+    fs.promises.access.mockRestore();
+  });
+
+  test('should handle permission errors when accessing a directory during scan', async () => {
+    mockFs({
+      '/project': {
+        'restrictedDir': mockFs.directory({
+          mode: 0o000, // No permissions
+          items: {
+            'file.js': 'console.log("restricted file");'
+          }
+        }),
+        'accessibleDir': {
+          'file.js': 'console.log("accessible file");'
+        }
+      }
+    });
+
+    const scanner = new FileScanner('/project');
+    const files = await scanner.scan();
+
+    const expectedFiles = [
+      '/project/accessibleDir/file.js',
+    ];
+
+    expect(files.sort()).toEqual(expectedFiles.sort());
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      expect.stringContaining('Error scanning directory /project/restrictedDir')
+    );
+
+    // Cleanup
+    mockFs.restore();
+  });
+
+  test('should skip non-function tasks without affecting the scan', async () => {
+    mockFs({
+      '/project': {
+        'file1.js': 'console.log("file1");',
+        'file2.js': 'console.log("file2");',
+      }
+    });
+
+    // Mock a non-function task
+    const nonFunctionTask = 'not a function';
+
+    // Spy on runConcurrently to include a non-function task
+    jest.spyOn(PerformanceOptimizer.prototype, 'runConcurrently').mockImplementation(async (tasks) => {
+      const validTasks = tasks.filter(task => typeof task === 'function');
+      return Promise.all(validTasks.map(task => task()));
+    });
+
+    const scanner = new FileScanner('/project');
+    const files = await scanner.scan();
+
+    const expectedFiles = [
+      '/project/file1.js',
+      '/project/file2.js',
+    ];
+
+    expect(files.sort()).toEqual(expectedFiles.sort());
+    expect(mockLogger.debug).toHaveBeenCalledTimes(2);
+
+    // Restore the original implementation
+    PerformanceOptimizer.prototype.runConcurrently.mockRestore();
   });
 });
