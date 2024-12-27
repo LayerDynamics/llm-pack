@@ -22,6 +22,9 @@ class Consolidator {
   async consolidate(files) {
     Logger.info(`Starting consolidation of ${files.length} files into ${this.outputFilePath}`);
 
+    // Ensure the output directory exists
+    this.ensureOutputDirectory();
+
     const writeStream = fs.createWriteStream(this.outputFilePath, { encoding: 'utf8' });
 
     return new Promise((resolve, reject) => {

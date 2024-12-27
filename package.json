@@ -15,11 +15,9 @@
     "GUI",
     "Tool",
     "AI",
-    "Development",
-    "llm-pack",
-    "LLM-Pack"
+    "Development"
   ],
-  "author": "LayerDynamics Ryan O'Boyle",
+  "author": "Development Team",
   "license": "MIT",
   "description": "A CLI tool with an optional GUI designed to optimize project files and datasets for consumption by Large Language Models (LLMs) and humans.",
   "dependencies": {
