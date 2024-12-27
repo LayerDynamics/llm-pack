@@ -5,14 +5,16 @@ const mockWinstonLogger = {
   info: jest.fn(),
   error: jest.fn(),
   warn: jest.fn(),
-  debug: jest.fn()
+  debug: jest.fn(),
+  add: jest.fn()
 };
 
 jest.mock('winston', () => ({
   format: {
-    combine: jest.fn(),
-    timestamp: jest.fn(),
-    printf: jest.fn()
+    combine: jest.fn(() => jest.fn()),
+    timestamp: jest.fn(() => jest.fn()),
+    printf: jest.fn(() => jest.fn()),
+    simple: jest.fn(() => jest.fn())
   },
   transports: {
     Console: jest.fn(),
@@ -84,8 +86,8 @@ describe('Logger', () => {
     // Import and initialize logger
     jest.isolateModules(() => {
       require('../../../src/utils/logger');
-      expect(mockFsImpl.existsSync).toHaveBeenCalledWith('llm-pack/logs');
-      expect(mockFsImpl.mkdirSync).toHaveBeenCalledWith('llm-pack/logs', { recursive: true });
+      expect(mockFsImpl.existsSync).toHaveBeenCalledWith('.llm-pack/logs');
+      expect(mockFsImpl.mkdirSync).toHaveBeenCalledWith('.llm-pack/logs', { recursive: true });
     });
   });
 
@@ -112,8 +114,8 @@ describe('Logger', () => {
     // Expect logger initialization to throw an error
     jest.isolateModules(() => {
       expect(() => require('../../../src/utils/logger')).toThrow(errorMsg);
-      expect(mockFsImpl.existsSync).toHaveBeenCalledWith('llm-pack/logs');
-      expect(mockFsImpl.mkdirSync).toHaveBeenCalledWith('llm-pack/logs', { recursive: true });
+      expect(mockFsImpl.existsSync).toHaveBeenCalledWith('.llm-pack/logs');
+      expect(mockFsImpl.mkdirSync).toHaveBeenCalledWith('.llm-pack/logs', { recursive: true });
     });
   });
 });
