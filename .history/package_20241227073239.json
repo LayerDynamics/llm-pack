@@ -1,0 +1,12 @@
+{
+  "name": "llm-pack",
+  "version": "0.1.0",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

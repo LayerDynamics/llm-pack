@@ -1,0 +1,18 @@
+
+# Exclude temporary files
+*.tmp
+*.temp
+
+# Exclude build directories
+build/
+dist/
+
+# Exclude logs
+logs/
+
+# Exclude OS-specific files
+.DS_Store
+Thumbs.db
+
+# Exclude configuration files
+*.config.js
