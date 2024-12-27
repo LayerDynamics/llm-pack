@@ -15,9 +15,11 @@
     "GUI",
     "Tool",
     "AI",
-    "Development"
+    "Development",
+    "llm-pack",
+    "LLM-Pack"
   ],
-  "author": "Development Team",
+  "author": "LayerDynamics Ryan O'Boyle",
   "license": "MIT",
   "description": "A CLI tool with an optional GUI designed to optimize project files and datasets for consumption by Large Language Models (LLMs) and humans.",
   "dependencies": {
@@ -30,6 +32,18 @@
     "prettier": "^2.8.8",
     "husky": "^8.0.3",
     "lint-staged": "^13.2.3",
-    "mock-fs": "^5.2.1"
+    "mock-fs": "^5.2.1",
+    "winston": "^3.8.2"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "coverageDirectory": "coverage",
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "moduleFileExtensions": [
+      "js"
+    ]
   }
 }
