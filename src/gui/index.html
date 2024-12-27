@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>LLM-Pack GUI</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 20px;
+      }
+      .config-section, .action-section {
+        margin-bottom: 15px;
+      }
+      label {
+        display: inline-block;
+        width: 150px;
+      }
+      input {
+        margin-bottom: 5px;
+      }
+      button {
+        margin-right: 10px;
+      }
+      #log {
+        margin-top: 20px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        height: 200px;
+        overflow-y: scroll;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>LLM-Pack GUI</h1>
+
+    <div class="config-section">
+      <label for="rootDir">Root Directory:</label>
+      <input type="text" id="rootDir" value="" placeholder="e.g. /path/to/project" size="40" />
+      <br />
+
+      <label for="sortingStrategy">Sorting Strategy:</label>
+      <select id="sortingStrategy">
+        <option value="lexical" selected>lexical</option>
+        <!-- Additional strategies could go here -->
+      </select>
+      <br />
+
+      <label for="enrichDescriptions">Enrich Descriptions:</label>
+      <input type="checkbox" id="enrichDescriptions" checked />
+      <br />
+
+      <label for="detectDependencies">Detect Dependencies:</label>
+      <input type="checkbox" id="detectDependencies" checked />
+      <br />
+
+      <label for="outputDir">Output Dir:</label>
+      <input type="text" id="outputDir" value=".llm-pack" size="40" />
+      <br />
+
+      <label for="outputFile">Output File:</label>
+      <input type="text" id="outputFile" value="consolidated_output.md" size="40" />
+    </div>
+
+    <div class="action-section">
+      <button id="runBtn">Run Pipeline</button>
+    </div>
+
+    <div id="log"></div>
+
+    <script>
+      const { ipcRenderer } = require('electron');
+
+      const logEl = document.getElementById('log');
+
+      function logMessage(message) {
+        const p = document.createElement('p');
+        p.textContent = message;
+        logEl.appendChild(p);
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      document.getElementById('runBtn').addEventListener('click', async () => {
+        const rootDir = document.getElementById('rootDir').value || process.cwd();
+        const sortingStrategy = document.getElementById('sortingStrategy').value;
+        const enrichDescriptions = document.getElementById('enrichDescriptions').checked;
+        const detectDependencies = document.getElementById('detectDependencies').checked;
+        const outputDir = document.getElementById('outputDir').value;
+        const outputFile = document.getElementById('outputFile').value;
+
+        const configOverride = {
+          sortingStrategy,
+          metadata: {
+            enrichDescriptions,
+            detectDependencies,
+          },
+          output: {
+            dir: outputDir,
+            fileName: outputFile,
+          },
+        };
+
+        logMessage('Starting pipeline execution...');
+        const result = await ipcRenderer.invoke('llm-pack:run', { rootDir, configOverride });
+
+        if (result.status === 'success') {
+          logMessage('Pipeline execution complete.');
+        } else {
+          logMessage(`Error: ${result.message}`);
+        }
+      });
+    </script>
+  </body>
+</html>
