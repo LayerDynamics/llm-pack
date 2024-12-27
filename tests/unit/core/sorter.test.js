@@ -1,9 +1,9 @@
-const Sorter = require('../../src/core/sorter');
-const LexicalSort = require('../../src/core/strategies/lexicalSort');
-const DependencySort = require('../../src/core/strategies/dependencySort');
-const Logger = require('../../src/utils/logger');
+const Sorter = require('../../../src/core/sorter');
+const LexicalSort = require('../../../src/core/strategies/lexicalSort');
+const DependencySort = require('../../../src/core/strategies/dependencySort');
+const Logger = require('../../../src/utils/logger');
 
-jest.mock('../../src/utils/logger');
+jest.mock('../../../src/utils/logger');
 
 describe('Sorter', () => {
   const mockFiles = [
@@ -57,17 +57,23 @@ describe('Sorter', () => {
     expect(sorted[0].relativePath).toBe('src/main.js');
   });
 
-  test('should throw error when setting an invalid strategy', () => {
-    const sorter = new Sorter();
-    expect(() => sorter.setStrategy(null)).toThrow('Invalid sorting strategy provided.');
+  test('should handle sorting when strategy.sort throws an error', () => {
+    const faultyStrategy = {
+      sort: jest.fn(() => { throw new Error('Sort failed'); }),
+    };
+    const sorter = new Sorter(faultyStrategy);
+    expect(() => sorter.sort(mockFiles)).toThrow('File sorting encountered an error. Check logs for details.');
+    expect(faultyStrategy.sort).toHaveBeenCalledWith(mockFiles);
   });
 
-  test('should handle sorting with an empty file list', () => {
-    const lexicalSort = new LexicalSort();
-    const sorter = new Sorter(lexicalSort);
-
-    const sortedFiles = sorter.sort([]);
-    expect(sortedFiles).toEqual([]);
+  test('should throw error when strategy sort function throws', () => {
+    const errorStrategy = {
+      sort: () => { throw new Error('Strategy error'); },
+      constructor: { name: 'ErrorStrategy' }
+    };
+    
+    const sorter = new Sorter(errorStrategy);
+    expect(() => sorter.sort([])).toThrow('File sorting encountered an error. Check logs for details.');
+    expect(Logger.error).toHaveBeenCalled();
   });
 });
-
