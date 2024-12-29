@@ -1,4 +1,5 @@
-const fs = require('fs').promises;
+// src/core/metadataProcessor.js
+const fs = require( 'fs' ).promises;
 const path = require('path');
 const Logger = require('../utils/logger');
 

@@ -1,4 +1,3 @@
-
 /**
  * Interactive CLI Mode
  * Prompts the user for configurations and runs the LLM-Pack pipeline.
@@ -24,8 +23,16 @@ async function interactiveCLI() {
         name: 'sortingStrategy',
         type: 'list',
         message: 'Choose a sorting strategy:',
-        choices: ['lexical'],
+        choices: ['lexical', 'dependency', 'size', 'type'],
         default: 'lexical',
+      },
+      {
+        name: 'sortOrder',
+        type: 'list',
+        message: 'Choose a sort order:',
+        choices: ['asc', 'desc'],
+        when: (ans) => ['size', 'type'].includes(ans.sortingStrategy),
+        default: 'asc',
       },
       {
         name: 'enrichDescriptions',
@@ -62,6 +69,7 @@ async function interactiveCLI() {
     // Construct a config override from user input
     const configOverride = {
       sortingStrategy: answers.sortingStrategy,
+      sortOrder: answers.sortOrder || 'asc',
       metadata: {
         enrichDescriptions: answers.enrichDescriptions,
         detectDependencies: answers.detectDependencies,

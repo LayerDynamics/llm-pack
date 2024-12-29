@@ -1,4 +1,5 @@
-const os = require('os');
+// src/core/performanceOptimizer.js
+const os = require( 'os' );
 const Logger = require('../utils/logger'); // Importing the singleton instance
 
 class PerformanceOptimizer {

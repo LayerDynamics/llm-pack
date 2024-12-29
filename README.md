@@ -1,4 +1,3 @@
-
 # LLM-Pack
 
 LLM-Pack is a CLI tool with an optional GUI designed to optimize project files and datasets for consumption by Large Language Models (LLMs) and humans.
@@ -12,6 +11,10 @@ LLM-Pack is a CLI tool with an optional GUI designed to optimize project files a
 - **Configuration Support**
 - **Optional GUI**
 - **Extendable API**
+
+## Plugin System
+
+LLM-Pack supports plugins for extending its functionality. Place your plugins in the `plugins` folder with a `plugin.json` manifest. Refer to the [Plugin Development Guide](./docs/plugin-development.md) for details.
 
 ## Installation
 

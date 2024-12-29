@@ -1,4 +1,3 @@
-
 /**
  * CLI Entry Point
  * Provides commands to run LLM-Pack functionalities using commander.
@@ -60,13 +59,19 @@ program
   .command('sort')
   .description('Sorts files using the configured strategy.')
   .option('-r, --root <path>', 'Root directory of the project', process.cwd())
+  .option('-s, --strategy <type>', 'Sorting strategy (lexical, dependency, size, type)', 'lexical')
+  .option('-o, --order <order>', 'Sort order (asc, desc)', 'asc')
   .action(async (options) => {
     try {
-      const { root } = options;
+      const { root, strategy, order } = options;
       const api = new LlmPackAPI(path.resolve(root));
       const files = await api.scanFiles();
       const enriched = await api.enrichMetadata(files);
-      const sorted = api.sortFiles(enriched);
+      const configOverride = {
+        sortingStrategy: strategy,
+        sortOrder: order,
+      };
+      const sorted = api.sortFiles(enriched, configOverride);
 
       Logger.info('Sorted files order:');
       sorted.forEach((file) => Logger.info(file.relativePath));
@@ -99,11 +104,17 @@ program
   .command('run')
   .description('Runs the full pipeline: scan, enrich, sort, and consolidate.')
   .option('-r, --root <path>', 'Root directory of the project', process.cwd())
+  .option('-s, --strategy <type>', 'Sorting strategy (lexical, dependency, size, type)', 'lexical')
+  .option('-o, --order <order>', 'Sort order (asc, desc)', 'asc')
   .action(async (options) => {
     try {
-      const { root } = options;
+      const { root, strategy, order } = options;
       const api = new LlmPackAPI(path.resolve(root));
-      await api.runAll();
+      const configOverride = {
+        sortingStrategy: strategy,
+        sortOrder: order,
+      };
+      await api.runAll(configOverride);
       Logger.info('Pipeline execution complete.');
     } catch (error) {
       Logger.error(error.message);

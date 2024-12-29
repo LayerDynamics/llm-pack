@@ -1,4 +1,5 @@
-const fs = require('fs').promises;
+// src/core/fileScanner.js
+const fs = require( 'fs' ).promises;
 const path = require('path');
 const IgnoreProcessor = require('./ignoreProcessor');
 const PerformanceOptimizer = require('./performanceOptimizer');

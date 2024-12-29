@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
   <head>
@@ -35,6 +34,7 @@
     <h1>LLM-Pack GUI</h1>
 
     <div class="config-section">
+      <h2>Configuration Editor</h2>
       <label for="rootDir">Root Directory:</label>
       <input type="text" id="rootDir" value="" placeholder="e.g. /path/to/project" size="40" />
       <br />
@@ -43,6 +43,13 @@
       <select id="sortingStrategy">
         <option value="lexical" selected>lexical</option>
         <!-- Additional strategies could go here -->
+      </select>
+      <br />
+
+      <label for="sortOrder">Sort Order:</label>
+      <select id="sortOrder">
+        <option value="asc">Ascending</option>
+        <option value="desc">Descending</option>
       </select>
       <br />
 
@@ -60,13 +67,20 @@
 
       <label for="outputFile">Output File:</label>
       <input type="text" id="outputFile" value="consolidated_output.md" size="40" />
+      <br />
+
+      <button id="saveConfigBtn">Save Configuration</button>
     </div>
 
     <div class="action-section">
       <button id="runBtn">Run Pipeline</button>
+      <button id="clearLogBtn">Clear Logs</button>
     </div>
 
-    <div id="log"></div>
+    <div class="log-section">
+      <h2>Real-Time Logs</h2>
+      <div id="log"></div>
+    </div>
 
     <script>
       const { ipcRenderer } = require('electron');
@@ -83,13 +97,15 @@
       document.getElementById('runBtn').addEventListener('click', async () => {
         const rootDir = document.getElementById('rootDir').value || process.cwd();
         const sortingStrategy = document.getElementById('sortingStrategy').value;
+        const sortOrder = document.getElementById('sortOrder').value;
         const enrichDescriptions = document.getElementById('enrichDescriptions').checked;
-        const detectDependencies = document.getElementById('detectDependencies').checked;
-        const outputDir = document.getElementById('outputDir').value;
-        const outputFile = document.getElementById('outputFile').value;
-
-        const configOverride = {
+            detectDependencies,
+          },
+          output: {
+            dir: outputDir,
+            fileName: outputFile,
           sortingStrategy,
+          sortOrder,
           metadata: {
             enrichDescriptions,
             detectDependencies,
@@ -108,6 +124,42 @@
         } else {
           logMessage(`Error: ${result.message}`);
         }
+      });
+
+      document.getElementById('clearLogBtn').addEventListener('click', () => {
+        logEl.innerHTML = '';
+      });
+
+      ipcRenderer.on('llm-pack:log', (event, data) => {
+        logMessage(data);
+      });
+
+      window.addEventListener('DOMContentLoaded', async () => {
+        const response = await ipcRenderer.invoke('llm-pack:loadConfig');
+        if (response) {
+          document.getElementById('rootDir').value = response.rootDir || '';
+          document.getElementById('sortingStrategy').value = response.sortingStrategy || 'lexical';
+          document.getElementById('sortOrder').value = response.sortOrder || 'asc';
+          document.getElementById('enrichDescriptions').checked = response.metadata.enrichDescriptions || false;
+          document.getElementById('detectDependencies').checked = response.metadata.detectDependencies || false;
+          document.getElementById('outputDir').value = response.output.dir || '.llm-pack';
+          document.getElementById('outputFile').value = response.output.fileName || 'consolidated_output.md';
+        }
+      });
+
+      document.getElementById('saveConfigBtn').addEventListener('click', async () => {
+        const rootDir = document.getElementById('rootDir').value || process.cwd();
+        const sortingStrategy = document.getElementById('sortingStrategy').value;
+        const sortOrder = document.getElementById('sortOrder').value;
+        const enrichDescriptions = document.getElementById('enrichDescriptions').checked;
+          output: {
+            dir: outputDir,
+            fileName: outputFile,
+          },
+        };
+
+        await ipcRenderer.invoke('llm-pack:saveConfig', config);
+        logMessage('Configuration saved.');
       });
     </script>
   </body>

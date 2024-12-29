@@ -1,17 +1,23 @@
+// src/core/consolidator.js
 const fs = require('fs');
 const path = require('path');
 const { Writable } = require('stream');
 const Logger = require('../utils/logger');
 
 class Consolidator {
-  constructor(outputDir = '.llm-pack', outputFileName = 'consolidated_output.md') {
-    this.outputDir = path.join(outputDir);
-    this.outputFilePath = path.join(this.outputDir, outputFileName);
-    this.ensureOutputDirectory();
+  constructor(outputDir, outputFileName) {
+    this.outputDir = outputDir === '' ? '' : (outputDir || '.');
+    this.outputFileName = outputFileName;
+    this.outputFilePath = path.join(this.outputDir || '.', this.outputFileName);
   }
 
   ensureOutputDirectory() {
-    if (!fs.existsSync(this.outputDir)) {
+    if (this.outputDir === '') {
+      Logger.info('Using current directory for output');
+      return;
+    }
+
+    if (this.outputDir !== '.' && !fs.existsSync(this.outputDir)) {
       fs.mkdirSync(this.outputDir, { recursive: true });
       Logger.info(`Created output directory at ${this.outputDir}`);
     } else {
@@ -68,10 +74,12 @@ class Consolidator {
   }
 
   formatContent(file) {
-    const ext = path.extname(file.fileName).substring(1) || 'plaintext';
-    const content = file.content.replace(/```/g, '````');
-
-    return `\`\`\`${ext}\n${content}\n\`\`\`\n`;  // Remove extra newline
+    let ext = 'plaintext';
+    if (file.fileName) {
+      ext = path.extname(file.fileName).substring(1) || 'plaintext';
+    }
+    const content = file.content ? file.content.replace(/```/g, '````') : '';
+    return `\`\`\`${ext}\n${content}\n\`\`\`\n`;
   }
 }
 

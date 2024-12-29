@@ -1,78 +1,106 @@
 // src/utils/logger.js
-const { createLogger, format, transports } = require( 'winston' );
+
+const { createLogger, format, transports } = require('winston');
 const path = require('path');
 const fs = require('fs');
+const mkdirp = require('mkdirp');
 
 class Logger {
-  constructor() {
-    if (Logger.instance) {
-      return Logger.instance;
-    }
+	constructor() {
+		if (Logger.instance) {
+			return Logger.instance;
+		}
 
-    try {
-      const logsDir = path.join('.llm-pack', 'logs');
-      if (!fs.existsSync(logsDir)) {
-        fs.mkdirSync(logsDir, { recursive: true });
-      }
+		const logsDir = path.join(process.cwd(), '.llm-pack', 'logs');
 
-      this.logger = createLogger({
-        level: 'info',
-        format: this.createLogFormat(),
-        transports: this.createTransports(logsDir)
-      });
+		try {
+			// Ensure logs directory exists
+			if (!fs.existsSync(logsDir)) {
+				try {
+					mkdirp.sync(logsDir);
+				} catch (err) {
+					throw new Error(`Failed to create logs directory: ${err.message}`);
+				}
+			}
+		} catch (error) {
+			throw new Error(`Failed to create logs directory: ${error.message}`);
+		}
 
-      Logger.instance = this;
-    } catch (error) {
-      throw error;
-    }
-  }
+		this.logger = this.initializeLogger(logsDir);
+		Logger.instance = this;
+	}
 
-  createLogFormat() {
-    return format.combine(
-      format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-      format.errors({ stack: true }),
-      format.splat(),
-      format.printf(({ timestamp, level, message, stack }) => {
-        if (stack) {
-          return `${timestamp} [${level.toUpperCase()}]: ${message}\n${stack}`;
-        }
-        return `${timestamp} [${level.toUpperCase()}]: ${message}`;
-      })
-    );
-  }
+	initializeLogger(logsDir) {
+		const formatMessage = (message) => {
+			if (message === null) return 'null';
+			if (message === undefined) return 'undefined';
+			if (typeof message === 'object') return JSON.stringify(message);
+			return String(message);
+		};
 
-  createTransports(logsDir) {
-    return [
-      new transports.Console(),
-      new transports.File({ 
-        filename: path.join(logsDir, 'error.log'), 
-        level: 'error' 
-      }),
-      new transports.File({ 
-        filename: path.join(logsDir, 'combined.log') 
-      })
-    ];
-  }
+		return createLogger({
+			level: process.env.LOG_LEVEL || 'info',
+			format: format.combine(
+				format.timestamp(),
+				format.errors({ stack: true }),
+				format.splat(),
+				format.printf(({ level, message, timestamp, stack }) => {
+					const msg = `${timestamp} [${level.toUpperCase()}]: ${formatMessage(
+						message,
+					)}`;
+					return stack ? `${msg}\n${stack}` : msg;
+				}),
+			),
+			transports: [
+				new transports.Console(),
+				new transports.File({
+					filename: path.join(logsDir, 'error.log'),
+					level: 'error',
+				}),
+				new transports.File({
+					filename: path.join(logsDir, 'combined.log'),
+				}),
+			],
+		});
+	}
 
-  info(message) {
-    this.logger.info(message);
-  }
+	formatMessage(message) {
+		if (message === null) return 'null';
+		if (message === undefined) return 'undefined';
+		if (typeof message === 'object') return JSON.stringify(message);
+		return String(message);
+	}
 
-  error(message, error = null) {
-    if (error && error.stack) {
-      this.logger.error(`${message} - ${error.message}`, { stack: error.stack });
-    } else {
-      this.logger.error(message);
-    }
-  }
+	log(level, message, error = null) {
+		if (error instanceof Error) {
+			this.logger[level](`${message}: ${error.message}`, {
+				stack: error.stack,
+			});
+		} else {
+			this.logger[level](this.formatMessage(message));
+		}
+	}
 
-  warn(message) {
-    this.logger.warn(message);
-  }
+	info(message) {
+		this.log('info', message);
+	}
 
-  debug(message) {
-    this.logger.debug(message);
-  }
+	error(message, error = null) {
+		this.log('error', message, error);
+	}
+
+	warn(message) {
+		this.log('warn', message);
+	}
+
+	debug(message) {
+		this.log('debug', message);
+	}
 }
 
-module.exports = new Logger();
+// Create and export singleton instance
+const instance = new Logger();
+module.exports = instance;
+
+// Also export the Logger class for testing purposes
+module.exports.Logger = Logger;

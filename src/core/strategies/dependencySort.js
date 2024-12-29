@@ -1,73 +1,70 @@
-const path = require('path'); // Ensure path is required
+const path = require('path');
 
 class DependencySort {
-  sort(files) {
-    const fileMap = new Map();
-    const sorted = [];
-    const visited = new Set();
-    const temp = new Set();
+	constructor() {
+		this.resolvedDeps = new Map();
+	}
 
-    // Initialize the file map
-    files.forEach((file) => {
-      fileMap.set(file.relativePath, file);
-    });
+	sort(files) {
+		if (!Array.isArray(files)) {
+			throw new Error('Files must be provided as an array');
+		}
 
-    const visit = (file) => {
-      if (visited.has(file.relativePath)) {
-        return;
-      }
-      if (temp.has(file.relativePath)) {
-        throw new Error(`Circular dependency detected involving ${file.relativePath}`);
-      }
+		const fileMap = new Map();
+		const sorted = [];
+		const visited = new Set();
+		const temp = new Set();
 
-      temp.add(file.relativePath);
+		// Initialize file map with normalized paths
+		files.forEach((file) => {
+			const key = file.relativePath || file.path;
+			fileMap.set(key, file);
+		});
 
-      // Process dependencies if they exist and are valid
-      const deps = file.metadata?.dependencies;
-      if (deps && Array.isArray(deps)) {
-        for (const dep of deps) {
-          if (!dep) continue; // Skip null/undefined dependencies
-          
-          const depPath = dep.endsWith('.js') ? dep : `${dep}.js`;
-          const currentDir = path.dirname(file.relativePath);
-          const depRelativePath = path.normalize(path.join(currentDir, depPath));
+		const visit = (file, chain = []) => {
+			const fileKey = file.relativePath || file.path;
 
-          const depFile = fileMap.get(depRelativePath);
-          if (depFile) {
-            visit(depFile);
-          }
-        }
-      }
+			if (visited.has(fileKey)) return;
+			if (temp.has(fileKey)) {
+				throw new Error(`Circular dependency detected involving ${chain[0]}`);
+			}
 
-      temp.delete(file.relativePath);
-      visited.add(file.relativePath);
-      sorted.push(file);
-    };
+			temp.add(fileKey);
+			chain.push(fileKey);
 
-    try {
-      // First process files with dependencies
-      files.forEach((file) => {
-        if (
-          !visited.has(file.relativePath) &&
-          file.metadata?.dependencies?.length > 0
-        ) {
-          visit(file);
-        }
-      });
+			// Process dependencies
+			const deps = file.metadata?.dependencies || [];
+			if (Array.isArray(deps)) {
+				for (const dep of deps) {
+					if (!dep) continue;
 
-      // Then process remaining files
-      files.forEach((file) => {
-        if (!visited.has(file.relativePath)) {
-          visit(file);
-        }
-      });
+					// Handle dependency path with or without .js extension
+					const depPath = dep.endsWith('.js') ? dep : `${dep}.js`;
+					const normalizedPath = depPath.startsWith('./')
+						? path.join(path.dirname(fileKey), depPath.slice(2))
+						: depPath;
 
-      return sorted;
-    } catch (error) {
-      throw error; // Preserve original error message for circular dependencies
-    }
-  }
+					const depFile = fileMap.get(normalizedPath);
+					if (depFile && !visited.has(normalizedPath)) {
+						visit(depFile, [...chain]);
+					}
+				}
+			}
+
+			temp.delete(fileKey);
+			visited.add(fileKey);
+			sorted.push(file);
+		};
+
+		// Process all files
+		for (const file of files) {
+			if (!visited.has(file.relativePath || file.path)) {
+				visit(file, []);
+			}
+		}
+
+		return sorted;
+	}
 }
 
 module.exports = DependencySort;
-

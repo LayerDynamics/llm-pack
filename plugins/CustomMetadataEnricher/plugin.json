@@ -1,0 +1,11 @@
+{
+  "name": "CustomMetadataEnricher",
+  "version": "1.0.0",
+  "description": "Enriches files with custom metadata fields.",
+  "author": "Jane Doe",
+  "entry": "index.js",
+  "hooks": [
+    "afterEnrich",
+    "beforeConsolidate"
+  ]
+}

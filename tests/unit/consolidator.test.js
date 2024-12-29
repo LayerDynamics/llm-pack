@@ -1,4 +1,5 @@
-const mockFs = require('mock-fs');
+//  tests/unit/consolidator.test.js
+const mockFs = require( 'mock-fs' );
 const fs = require('fs');
 const path = require('path');
 const Consolidator = require('../../src/core/consolidator');
@@ -107,5 +108,18 @@ describe('Consolidator', () => {
     const actualContent = fs.readFileSync(outputFilePath, 'utf8');
     expect(actualContent).toContain('**Description**: No description available.');
     expect(actualContent).toContain('**Dependencies**: None');
+  });
+});
+
+describe('Consolidator - Additional Coverage', () => {
+  test('constructor should handle empty dirname', () => {
+    const c = new Consolidator('', 'out.md');
+    expect(c.outputDir).toBe('');
+  });
+
+  test('formatContent should handle missing fileName', () => {
+    const c = new Consolidator('.', 'test.md');
+    const result = c.formatContent({ content: 'test content' });
+    expect(result).toContain('plaintext');
   });
 });
