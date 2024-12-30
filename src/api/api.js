@@ -117,9 +117,12 @@ class LlmPackAPI {
 		await this.pluginManager.executeHook('beforeConsolidate', sortedFiles);
 		const { dir, fileName } = this.config.output;
 
+		// Validate and process files
+		const validFiles = sortedFiles.filter((file) => file && file.path);
+
 		// Handle files without content
 		const filesWithContent = await Promise.all(
-			sortedFiles.map(async (file) => {
+			validFiles.map(async (file) => {
 				if (!file.content && file.path) {
 					try {
 						file.content = await fs.promises.readFile(file.path, 'utf8');
@@ -132,13 +135,18 @@ class LlmPackAPI {
 			}),
 		);
 
-		const resolvedDir = path.join(this.rootDir, dir);
-		const consolidator = new Consolidator(resolvedDir, fileName);
-		await consolidator.consolidate(filesWithContent);
-		await this.pluginManager.executeHook(
-			'afterConsolidate',
-			consolidator.outputFilePath,
-		);
+		try {
+			const resolvedDir = path.join(this.rootDir, dir);
+			const consolidator = new Consolidator(resolvedDir, fileName);
+			await consolidator.consolidate(filesWithContent);
+			await this.pluginManager.executeHook(
+				'afterConsolidate',
+				consolidator.outputFilePath,
+			);
+		} catch (error) {
+			Logger.error('Error during file consolidation:', error);
+			throw error;
+		}
 	}
 
 	/**

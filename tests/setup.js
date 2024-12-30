@@ -1,61 +1,76 @@
 // tests/setup.js
 
-// Create mock logger instance
-const mockLogger = {
-	info: jest.fn(),
-	error: jest.fn(),
-	warn: jest.fn(),
-	debug: jest.fn(),
-	log: jest.fn(),
+// Mock EventEmitter before anything else
+jest.mock('events', () => ({
+    EventEmitter: jest.fn().mockImplementation(() => ({
+        on: jest.fn(),
+        emit: jest.fn(),
+        removeListener: jest.fn()
+    }))
+}));
+
+require('@testing-library/jest-dom');
+
+// Add setImmediate polyfill
+global.setImmediate = require('timers').setImmediate;
+
+// Mock window
+global.window = {
+	require: require,
+	process: process,
+	fs: {
+		readFile: jest.fn(),
+		readFileSync: jest.fn(),
+		writeFile: jest.fn(),
+		writeFileSync: jest.fn(),
+		existsSync: jest.fn(),
+		mkdirSync: jest.fn(),
+	},
 };
 
-// Global mocks
-global.__mockLogger = mockLogger;
-
-// Setup test environment variables
-process.env.NODE_ENV = 'test';
-process.env.LOG_LEVEL = 'debug';
-
-// Mock Winston
-jest.mock('winston', () => ({
-	format: {
-		combine: jest.fn(() => ({ format: 'combined' })),
-		timestamp: jest.fn(() => ({ format: 'timestamp' })),
-		errors: jest.fn(() => ({ format: 'errors' })),
-		splat: jest.fn(() => ({ format: 'splat' })),
-		printf: jest.fn((formatter) => ({ format: 'printf', formatter })),
-	},
-	transports: {
-		Console: jest.fn(),
-		File: jest.fn(),
-	},
-	createLogger: jest.fn(() => global.__mockLogger),
-}));
-
 // Mock Electron
+const mockIpcRenderer = {
+	on: jest.fn(),
+	send: jest.fn(),
+	invoke: jest.fn(),
+};
+
+const mockIpcMain = {
+	handle: jest.fn(),
+	on: jest.fn(),
+};
+
+const mockApp = {
+	getPath: jest.fn(() => '/mock/path'),
+	on: jest.fn(),
+	whenReady: jest.fn().mockResolvedValue(true),
+};
+
+const mockBrowserWindow = {
+	loadFile: jest.fn().mockResolvedValue(undefined),
+	on: jest.fn(),
+	webContents: { send: jest.fn() },
+};
+
 jest.mock('electron', () => ({
-	app: {
-		getPath: jest.fn(() => '/mock/user/data'),
-		whenReady: jest.fn(() => Promise.resolve(true)),
-		quit: jest.fn(),
-	},
-	BrowserWindow: jest.fn().mockImplementation(() => ({
-		loadFile: jest.fn(),
-		on: jest.fn(),
-		webContents: { send: jest.fn() },
-	})),
-	ipcMain: {
-		handle: jest.fn(),
-	},
+	ipcRenderer: mockIpcRenderer,
+	ipcMain: mockIpcMain,
+	app: mockApp,
+	BrowserWindow: jest.fn(() => mockBrowserWindow),
 }));
 
-// Remove mock-fs setup from global beforeEach and afterEach
-beforeEach(() => {
-	// Any other global beforeEach logic
-});
+// Mock console methods
+global.console = {
+	...console,
+	log: jest.fn(),
+	error: jest.fn(),
+	warn: jest.fn(),
+	info: jest.fn(),
+};
 
-afterEach(() => {
-	// Remove mock-fs restore
-	jest.resetModules();
+// Mock HTML methods
+Element.prototype.scrollIntoView = jest.fn();
+
+beforeEach(() => {
 	jest.clearAllMocks();
 });

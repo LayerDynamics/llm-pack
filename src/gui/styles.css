@@ -1,0 +1,48 @@
+:root {
+  --primary: #1a73e8;
+  --error: #d93025;
+  --success: #188038;
+  --warning: #f29900;
+  --background: #ffffff;
+
+  --text: #202124;
+}
+
+.progress-container {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  background: var(--background);
+}
+
+.progress-bar {
+  height: 4px;
+  background-color: var(--primary);
+  transition: width 0.3s ease;
+}
+
+.log-viewer {
+  height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0.5rem;
+}
+
+.log-entry {
+  padding: 4px 8px;
+  margin: 2px 0;
+  border-radius: 2px;
+}
+
+.log-info {
+  background-color: rgba(26, 115, 232, 0.1);
+}
+
+.log-error {
+  background-color: rgba(217, 48, 37, 0.1);
+}
+
+.log-warning {
+  background-color: rgba(242, 153, 0, 0.1);
+}

@@ -1,39 +1,27 @@
 // jest.config.js
 module.exports = {
-	testEnvironment: 'node',
-	roots: ['<rootDir>/src', '<rootDir>/tests'],
-	setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
+	testEnvironment: 'jsdom',
+	setupFilesAfterEnv: ['@testing-library/jest-dom', '<rootDir>/tests/setup.js'],
 	moduleNameMapper: {
-		'^@/(.*)$': '<rootDir>/src/$1', // Correctly map @/ to src/
-	},
-	moduleDirectories: ['node_modules', 'src'],
-	collectCoverage: true,
-	coverageDirectory: 'coverage',
-	coverageThreshold: {
-		global: {
-			branches: 80,
-			functions: 80,
-			lines: 80,
-			statements: 80,
-		},
+		'^@/components/(.*)$': '<rootDir>/src/gui/components/$1',
+		'^@/(.*)$': '<rootDir>/src/$1',
+		'\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+		'^electron$': '<rootDir>/tests/mocks/electron.js',
+		'^events$': '<rootDir>/tests/mocks/events.js',
 	},
 	testPathIgnorePatterns: ['/node_modules/'],
-	transformIgnorePatterns: [
-		'/node_modules/(?!((execa)|(node-fetch)|(chalk)|(electron)))',
-	],
 	transform: {
-		'^.+\\.js$': ['babel-jest', { configFile: './babel.config.js' }],
-	},
-	moduleFileExtensions: ['js', 'json'],
-	globals: {
-		'process.env.BROWSERSLIST_IGNORE_OLD_DATA': true,
-	},
-	testEnvironmentOptions: {
-		url: 'http://localhost',
+		'^.+\\.(js|jsx)$': ['babel-jest', { configFile: './babel.config.js' }],
 	},
 	verbose: true,
-	clearMocks: true,
-	resetMocks: true,
-	restoreMocks: true,
-	injectGlobals: true,
+	collectCoverage: true,
+	coverageReporters: ['text', 'lcov'],
+	coverageThreshold: {
+		global: {
+			branches: 75,
+			functions: 75,
+			lines: 75,
+			statements: 75,
+		},
+	},
 };

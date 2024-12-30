@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * CLI Entry Point
  * Provides commands to run LLM-Pack functionalities using commander.
@@ -108,16 +110,24 @@ program
   .option('-o, --order <order>', 'Sort order (asc, desc)', 'asc')
   .action(async (options) => {
     try {
+      console.log('Starting LLM-Pack pipeline...');
+      console.log(`Working directory: ${options.root}`);
+      
       const { root, strategy, order } = options;
       const api = new LlmPackAPI(path.resolve(root));
       const configOverride = {
         sortingStrategy: strategy,
         sortOrder: order,
       };
+
+      console.log('Scanning files...');
       await api.runAll(configOverride);
-      Logger.info('Pipeline execution complete.');
+      
+      console.log('Pipeline execution complete.');
+      console.log(`Output directory: ${path.join(options.root, '.llm-pack')}`);
     } catch (error) {
-      Logger.error(error.message);
+      Logger.error('Pipeline failed:', error);
+      console.error('Error:', error.message);
       process.exit(1);
     }
   });

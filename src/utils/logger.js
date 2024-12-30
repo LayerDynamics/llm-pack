@@ -1,6 +1,6 @@
 // src/utils/logger.js
-
 const { createLogger, format, transports } = require('winston');
+const { EventEmitter } = require('events');
 const path = require('path');
 const fs = require('fs');
 const mkdirp = require('mkdirp');
@@ -10,6 +10,13 @@ class Logger {
 		if (Logger.instance) {
 			return Logger.instance;
 		}
+
+		// Create event emitter instance
+		this.emitter = new EventEmitter();
+		
+		// Properly bind event emitter methods
+		this.on = (event, listener) => this.emitter.on(event, listener);
+		this.emit = (event, data) => this.emitter.emit(event, data);
 
 		const logsDir = path.join(process.cwd(), '.llm-pack', 'logs');
 
@@ -73,11 +80,13 @@ class Logger {
 
 	log(level, message, error = null) {
 		if (error instanceof Error) {
-			this.logger[level](`${message}: ${error.message}`, {
-				stack: error.stack,
-			});
+			const logMessage = `${message}: ${error.message}`;
+			this.logger[level](logMessage, { stack: error.stack });
+			this.emit('log', { level, message: logMessage, stack: error.stack });
 		} else {
-			this.logger[level](this.formatMessage(message));
+			const formattedMessage = this.formatMessage(message);
+			this.logger[level](formattedMessage);
+			this.emit('log', { level, message: formattedMessage });
 		}
 	}
 

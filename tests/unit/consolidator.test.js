@@ -1,125 +1,119 @@
-//  tests/unit/consolidator.test.js
-const mockFs = require( 'mock-fs' );
+const mockFs = require('mock-fs');
 const fs = require('fs');
 const path = require('path');
 const Consolidator = require('../../src/core/consolidator');
-const Logger = require('../../src/utils/logger');
+const FileProcessor = require('../../src/core/fileProcessor');
 
 jest.mock('../../src/utils/logger');
+jest.mock('../../src/core/fileProcessor');
 
 describe('Consolidator', () => {
-  const outputDir = '.llm-pack';
-  const outputFileName = 'consolidated_output.md';
-  const outputFilePath = path.join(outputDir, outputFileName);
-  const mockFiles = [
-    {
-      fileName: 'main.js',
-      relativePath: 'src/main.js',
-      metadata: { description: 'Entry point of the application', dependencies: ['utils.js'] },
-      content: 'import utils from "./utils.js";\nconsole.log("Main");',
-    },
-    {
-      fileName: 'utils.js',
-      relativePath: 'src/utils.js',
-      metadata: { description: 'JavaScript utility module', dependencies: [] },
-      content: 'export const add = (a, b) => a + b;',
-    },
-  ];
+	beforeEach(() => {
+		mockFs({
+			'/test': {
+				'input.txt': 'test content',
+				'output': {},
+			},
+		});
 
-  beforeEach(() => {
-    mockFs({
-      [outputDir]: {
-        logs: {},
-      },
-    });
-  });
+		// Setup FileProcessor mock
+		FileProcessor.prototype.processFiles.mockResolvedValue({
+			results: [
+				{
+					fileName: 'test.js',
+					relativePath: 'test.js',
+					content: 'console.log("test");',
+					outputPath: '/test/output/test.js',
+				},
+			],
+			metrics: {},
+		});
 
-  afterEach(() => {
-    mockFs.restore();
-    jest.clearAllMocks();
-  });
+		jest.clearAllMocks();
+	});
 
-  test('should create the output directory if it does not exist', async () => {
-    mockFs({});
-    const consolidator = new Consolidator(outputDir, outputFileName);
-    await consolidator.consolidate(mockFiles);
-    expect(fs.existsSync(outputDir)).toBe(true);
-    expect(fs.existsSync(outputFilePath)).toBe(true);
-  });
+	afterEach(() => {
+		mockFs.restore();
+	});
 
-  test('should consolidate files into a single Markdown document with correct formatting', async () => {
-    const consolidator = new Consolidator(outputDir, outputFileName);
-    await consolidator.consolidate(mockFiles);
+	test('should initialize and consolidate files correctly', async () => {
+		const consolidator = new Consolidator({
+			outputDir: '/test/output',
+			outputFileName: 'output.md',
+		});
 
-    // Update expected content to match actual output (no trailing separator)
-    const expectedContent = `# main.js\n**Path**: \`src/main.js\`\n**Description**: Entry point of the application\n**Dependencies**: utils.js\n\n\`\`\`js\nimport utils from "./utils.js";\nconsole.log("Main");\n\`\`\`\n\n---\n\n# utils.js\n**Path**: \`src/utils.js\`\n**Description**: JavaScript utility module\n**Dependencies**: None\n\n\`\`\`js\nexport const add = (a, b) => a + b;\n\`\`\`\n`;
+		const files = [
+			{
+				fileName: 'test.js',
+				relativePath: 'test.js',
+				content: 'console.log("test");',
+			},
+		];
 
-    const actualContent = fs.readFileSync(outputFilePath, 'utf8');
-    expect(actualContent).toBe(expectedContent);
-  });
+		await consolidator.consolidate(files);
 
-  test('should escape triple backticks in file content', async () => {
-    const filesWithBackticks = [
-      {
-        fileName: 'example.js',
-        relativePath: 'src/example.js',
-        metadata: { description: 'Example file with backticks', dependencies: [] },
-        content: 'console.log(`Hello, World!`);\n// ``` should be escaped',
-      },
-    ];
+		expect(FileProcessor.prototype.processFiles).toHaveBeenCalledWith(files);
+		expect(fs.existsSync('/test/output/output.md')).toBe(true);
+	});
 
-    const consolidator = new Consolidator(outputDir, outputFileName);
-    await consolidator.consolidate(filesWithBackticks);
+	test('should create the output directory if it does not exist', async () => {
+		const consolidator = new Consolidator({
+			outputDir: '/test/newdir',
+			outputFileName: 'output.md',
+		});
 
-    const actualContent = fs.readFileSync(outputFilePath, 'utf8');
-    expect(actualContent).toContain('````');
-  });
+		await consolidator.ensureOutputDirectory();
+		expect(fs.existsSync('/test/newdir')).toBe(true);
+	});
 
-  test('should handle empty file array gracefully', async () => {
-    const consolidator = new Consolidator(outputDir, outputFileName);
-    await consolidator.consolidate([]);
-    const actualContent = fs.readFileSync(outputFilePath, 'utf8');
-    expect(actualContent).toBe('');
-  });
+	test('formatHeader should handle missing metadata correctly', () => {
+		const consolidator = new Consolidator();
+		const file = {
+			fileName: 'test.js',
+			relativePath: 'src/test.js',
+		};
+		const header = consolidator.formatHeader(file);
+		expect(header).toContain('No description available');
+		expect(header).toContain('**Dependencies**: None');
+	});
 
-  test('should throw an error if unable to write to the output file', async () => {
-    mockFs({
-      [outputDir]: mockFs.directory({
-        mode: 0o444,
-        items: {},
-      }),
-    });
+	test('should use current directory when outputDir is empty', () => {
+		const consolidator = new Consolidator({
+			outputDir: '',
+			outputFileName: 'output.md',
+		});
 
-    const consolidator = new Consolidator(outputDir, outputFileName);
-    await expect(consolidator.consolidate(mockFiles)).rejects.toThrow();
-  });
+		expect(consolidator.outputDir).toBe('.');
+		expect(consolidator.outputFilePath).toBe('./output.md');
+	});
 
-  test('should handle files with missing metadata gracefully', async () => {
-    const filesWithoutMetadata = [
-      {
-        fileName: 'simple.js',
-        relativePath: 'src/simple.js',
-        content: 'console.log("Simple");',
-      },
-    ];
+	test('formatContent should handle different file extensions', () => {
+		const consolidator = new Consolidator();
+		const testCases = [
+			{ fileName: 'test.js', expectedExt: 'js' },
+			{ fileName: 'test.py', expectedExt: 'py' },
+			{ fileName: 'test', expectedExt: 'plaintext' },
+			{ fileName: undefined, expectedExt: 'plaintext' },
+		];
 
-    const consolidator = new Consolidator(outputDir, outputFileName);
-    await consolidator.consolidate(filesWithoutMetadata);
-    const actualContent = fs.readFileSync(outputFilePath, 'utf8');
-    expect(actualContent).toContain('**Description**: No description available.');
-    expect(actualContent).toContain('**Dependencies**: None');
-  });
-});
+		testCases.forEach(({ fileName, expectedExt }) => {
+			const result = consolidator.formatContent({ fileName, content: 'test' });
+			expect(result).toContain(`\`\`\`${expectedExt}\n`);
+		});
+	});
 
-describe('Consolidator - Additional Coverage', () => {
-  test('constructor should handle empty dirname', () => {
-    const c = new Consolidator('', 'out.md');
-    expect(c.outputDir).toBe('');
-  });
+	test('should handle file processing errors gracefully', async () => {
+		FileProcessor.prototype.processFiles.mockRejectedValueOnce(
+			new Error('Processing failed'),
+		);
 
-  test('formatContent should handle missing fileName', () => {
-    const c = new Consolidator('.', 'test.md');
-    const result = c.formatContent({ content: 'test content' });
-    expect(result).toContain('plaintext');
-  });
+		const consolidator = new Consolidator({
+			outputDir: '/test/output',
+			outputFileName: 'output.md',
+		});
+
+		await expect(
+			consolidator.consolidate([{ path: 'test.js' }]),
+		).rejects.toThrow('Processing failed');
+	});
 });

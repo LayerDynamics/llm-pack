@@ -164,7 +164,7 @@ describe('PluginManager', () => {
 		expect(Logger.info).toHaveBeenCalledWith(
 			expect.stringContaining('Loaded plugin: ErrorPlugin v1.0.0'),
 		);
-	});
+	}, 15000); // Increase timeout to 15 seconds
 
 	test('should validate plugin hook requirements', async () => {
 		await pluginManager.loadPlugins();

@@ -1,4 +1,3 @@
-
 # Contributing to LLM-Pack
 
 Thank you for considering contributing to LLM-Pack!
@@ -25,13 +24,19 @@ Open an issue in the [GitHub Issues](https://github.com/yourusername/llm-pack/is
 
 ## Development Setup
 
-1. Clone the repo.
-2. Install dependencies.
-3. Run the app:
+1. Install Node.js
+   - Required version: >=16.20.2 <=20.10.0
+   - Recommended: Use `asdf` or `nvm` for version management
+2. Clone the repo
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+4. Run the app:
    ```bash
    npm start
    ```
-4. Run tests:
+5. Run tests:
    ```bash
    npm test
    ```
