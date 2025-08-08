@@ -31,7 +31,7 @@
 		"@babel/preset-react": "^7.26.3",
 		"commander": "^9.4.1",
 		"ignore": "^5.2.4",
-		"inquirer": "^8.0.0",
+		"inquirer": "^10.0.0",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"stream": "^0.0.3",
